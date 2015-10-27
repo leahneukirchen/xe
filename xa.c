@@ -211,7 +211,8 @@ main(int argc, char *argv[])
 				break;
 			}
 
-	cmd = calloc(argc-optind+maxatonce+1+(sflag ? 4 : 0), sizeof (char *));
+	cmd = calloc(argc-optind+maxatonce+1+
+	    (optind==cmdend ? 2 : 0)+(sflag ? 4 : 0), sizeof (char *));
 	if (!cmd)
 		exit(1);
 
@@ -223,6 +224,11 @@ main(int argc, char *argv[])
 			cmd[l++] = xstrdup("-c");
 			cmd[l++] = xstrdup(sflag);
 			cmd[l++] = xstrdup("-");
+		}
+
+		if (optind == cmdend) {
+			cmd[l++] = xstrdup("printf");
+			cmd[l++] = xstrdup("%s\\n");
 		}
 
 		if (maxatonce == 1) {

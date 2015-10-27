@@ -38,6 +38,8 @@ Over apply:
 * `-a`: take arguments from commandline, starting after the first `--`.
 * `-A`: take arguments from commandline, starting after the first *argsep*.
 
+If no argument is passed, default to "printf %s\n".
+
 ## Return code
 
 Like GNU and OpenBSD xargs:
