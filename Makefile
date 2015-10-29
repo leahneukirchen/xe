@@ -1,4 +1,4 @@
-ALL=xa
+ALL=xe
 
 CFLAGS=-g -O2 -Wall -Wno-switch -Wextra -Wwrite-strings
 

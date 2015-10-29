@@ -1,5 +1,5 @@
 /*
- * xa - simple xargs and apply replacement
+ * xe - simple xargs and apply replacement
  *
  * To the extent possible under law,
  * Christian Neukirchen <chneukirchen@gmail.com>
@@ -83,13 +83,13 @@ mywait()
 		if (WEXITSTATUS(status) >= 1 && WEXITSTATUS(status) <= 125) {
 			exit(123);
 		} else if (WEXITSTATUS(status) == 255) {
-			fprintf(stderr, "xa: %d exited with status 255\n", pid);
+			fprintf(stderr, "xe: %d exited with status 255\n", pid);
 			exit(124);
 		} else if (WEXITSTATUS(status) > 125) {
 			exit(WEXITSTATUS(status));
 		}
 	} else if (WIFSIGNALED(status)) {
-		fprintf(stderr, "xa: %d terminated by signal %d\n",
+		fprintf(stderr, "xe: %d terminated by signal %d\n",
 		    pid, WTERMSIG(status));
 		exit(125);
 	}
@@ -161,7 +161,7 @@ run(char *cmd[])
 			close(fd);
 			execvp(cmd[0], cmd);
 		}
-		fprintf(stderr, "xa: %s: %s\n", cmd[0], strerror(errno));
+		fprintf(stderr, "xe: %s: %s\n", cmd[0], strerror(errno));
 		exit(errno == ENOENT ? 127 : 126);
 	}
 

@@ -1,8 +1,10 @@
-## xa: simple xargs and apply replacement
+## xe: simple xargs and apply replacement
 
-`xa` is a new tool for constructing command lines from file listings
+`xe` is a new tool for constructing command lines from file listings
 or arguments, which includes the best features of `xargs(1)` and
 `apply(1)`.
+
+`xe` means "execute for every ...".
 
 ## Benefits
 
@@ -19,7 +21,7 @@ Over apply:
 
 ## Usage:
 
-	xa [-0nv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
+	xe [-0nv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
 	   | -s SHELLSCRIPT
 	   | -a COMMAND... -- ARGS...
 	   | -A ARGSEP COMMAND... ARGSEP ARGS...
@@ -60,7 +62,7 @@ You can also just copy the binary into your `PATH`.
 
 ## Copyright
 
-xa is in the public domain.
+xe is in the public domain.
 
 To the extent possible under law,
 Christian Neukirchen <chneukirchen@gmail.com>
