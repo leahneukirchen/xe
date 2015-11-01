@@ -224,9 +224,7 @@ main(int argc, char *argv[])
 			cmd[l++] = xstrdup("-c");
 			cmd[l++] = xstrdup(sflag);
 			cmd[l++] = xstrdup("-");
-		}
-
-		if (optind == cmdend) {
+		} else if (optind == cmdend) {
 			cmd[l++] = xstrdup("printf");
 			cmd[l++] = xstrdup("%s\\n");
 		}
