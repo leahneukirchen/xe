@@ -29,7 +29,7 @@ static char *sflag;
 static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
-static int aflag, nflag, vflag;
+static int aflag, kflag, nflag, vflag;
 
 static char *
 xstrdup(const char *s)
@@ -79,7 +79,7 @@ mywait()
 		// no other error possible?
 	}	
 	
-	if (WIFEXITED(status)) {
+	if (WIFEXITED(status) && !kflag) {
 		if (WEXITSTATUS(status) >= 1 && WEXITSTATUS(status) <= 125) {
 			exit(123);
 		} else if (WEXITSTATUS(status) == 255) {
@@ -181,20 +181,21 @@ main(int argc, char *argv[])
 	int i, cmdend;
 	char *arg, **cmd;
 
-	while ((c = getopt(argc, argv, "+0A:I:N:anj:s:v")) != -1)
+	while ((c = getopt(argc, argv, "+0A:I:N:aj:kns:v")) != -1)
 		switch(c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; aflag++; break;
-                case 'I': replace = optarg; break;
+		case 'I': replace = optarg; break;
 		case 'N': maxatonce = atoi(optarg); break;
 		case 'a': aflag++; break;
-		case 'n': nflag++; break;
 		case 'j': maxjobs = atoi(optarg); break;
+		case 'k': kflag++; break;
+		case 'n': nflag++; break;
 		case 's': sflag = optarg; break;
 		case 'v': vflag++; break;
 		default:
 			fprintf(stderr, 
-			    "Usage: %s [-0nv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "Usage: %s [-0knv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"
 			    "     | -A ARGSEP COMMAND... ARGSEP ARGS...\n",

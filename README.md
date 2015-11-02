@@ -21,12 +21,13 @@ Over apply:
 
 ## Usage:
 
-	xe [-0nv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
+	xe [-0knv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
 	   | -s SHELLSCRIPT
 	   | -a COMMAND... -- ARGS...
 	   | -A ARGSEP COMMAND... ARGSEP ARGS...
 
 * `-0`: input filenames are seperated by NUL bytes (default: newlines).
+* `-k`: keep going: don't stop when a command failed to execute.
 * `-n`: don't run the commands, just print them.
 * `-v`: print commands before running them.
 * `-I`: replace occurences of *arg* with the argument (default: `{}`).
