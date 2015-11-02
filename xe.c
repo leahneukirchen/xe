@@ -21,15 +21,14 @@
 static char delim = '\n';
 static char default_replace[] = "{}";
 static char *replace = default_replace;
-static char default_argsep[] = "--";
-static char *argsep = default_argsep;
+static char *argsep;
 static char **args;
 static char *sflag;
 
 static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
-static int Rflag, aflag, kflag, nflag, vflag;
+static int Rflag, Aflag, aflag, kflag, nflag, vflag;
 static long iterations = 0;
 
 static char *
@@ -47,7 +46,7 @@ static size_t getarg_len = 0;
 static char *
 getarg()
 {
-	if (aflag) {
+	if (aflag || Aflag) {
 		if (args && *args)
 			return xstrdup(*args++);
 		else
@@ -189,7 +188,7 @@ main(int argc, char *argv[])
 	while ((c = getopt(argc, argv, "+0A:I:N:Raj:kns:v")) != -1)
 		switch(c) {
 		case '0': delim = '\0'; break;
-		case 'A': argsep = optarg; aflag++; break;
+		case 'A': argsep = optarg; Aflag++; break;
 		case 'I': replace = optarg; break;
 		case 'N': maxatonce = atoi(optarg); break;
 		case 'R': Rflag++; break;
@@ -210,13 +209,26 @@ main(int argc, char *argv[])
 		}
 
 	cmdend = argc;
-	if (aflag)  // find argsep in argv
-		for (i = optind; i < argc; i++)
+	if (aflag) {  // find first -- in argv
+		for (i = 1; i < argc; i++)
+			if (strcmp(argv[i], "--") == 0) {
+				args = argv + i+1;
+				cmdend = i;
+				break;
+			}
+		if (sflag) {  // e.g. on xe -s 'echo $1' -a 1 2 3
+			cmdend = optind;
+			args = argv + cmdend;
+		}
+	} else if (Aflag) {  // find first argsep after optind
+		for (i = optind; i < argc; i++) {
 			if (strcmp(argv[i], argsep) == 0) {
 				args = argv + i+1;
 				cmdend = i;
 				break;
 			}
+		}
+	}
 
 	cmd = calloc(argc-optind+maxatonce+1+
 	    (optind==cmdend ? 2 : 0)+(sflag ? 4 : 0), sizeof (char *));
