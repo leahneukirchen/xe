@@ -44,6 +44,9 @@ Over apply:
 
 If no argument is passed, default to "printf %s\n".
 
+The current iteration is passed as `$ITER` to the child process
+(increased on every exec()).
+
 ## Return code
 
 Like GNU and OpenBSD xargs:

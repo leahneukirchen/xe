@@ -30,7 +30,7 @@ static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
 static int Rflag, aflag, kflag, nflag, vflag;
-static int iterations = 0;
+static long iterations = 0;
 
 static char *
 xstrdup(const char *s)
@@ -155,6 +155,9 @@ run(char *cmd[])
 
 	pid = fork();
 	if (pid == 0) {  // in child
+		char iter[32];
+		snprintf(iter, sizeof iter, "%ld", iterations);
+		setenv("ITER", iter, 1);
 		// redirect stdin to /dev/null
 		int fd = open("/dev/null", O_RDONLY);
 		if (fd >= 0) {
