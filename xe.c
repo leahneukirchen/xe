@@ -29,7 +29,8 @@ static char *sflag;
 static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
-static int aflag, kflag, nflag, vflag;
+static int Rflag, aflag, kflag, nflag, vflag;
+static int iterations = 0;
 
 static char *
 xstrdup(const char *s)
@@ -143,6 +144,7 @@ run(char *cmd[])
 	if (runjobs >= maxjobs)
 		mywait();
 	runjobs++;
+	iterations++;
 
 	if (vflag || nflag)
 		trace(cmd);
@@ -181,12 +183,13 @@ main(int argc, char *argv[])
 	int i, cmdend;
 	char *arg, **cmd;
 
-	while ((c = getopt(argc, argv, "+0A:I:N:aj:kns:v")) != -1)
+	while ((c = getopt(argc, argv, "+0A:I:N:Raj:kns:v")) != -1)
 		switch(c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; aflag++; break;
 		case 'I': replace = optarg; break;
 		case 'N': maxatonce = atoi(optarg); break;
+		case 'R': Rflag++; break;
 		case 'a': aflag++; break;
 		case 'j': maxjobs = atoi(optarg); break;
 		case 'k': kflag++; break;
@@ -195,7 +198,7 @@ main(int argc, char *argv[])
 		case 'v': vflag++; break;
 		default:
 			fprintf(stderr, 
-			    "Usage: %s [-0knv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "Usage: %s [-0Rknv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"
 			    "     | -A ARGSEP COMMAND... ARGSEP ARGS...\n",
@@ -263,5 +266,7 @@ main(int argc, char *argv[])
 
 	free(cmd);
 	free(getarg_line);
+	if (Rflag && iterations == 0)
+		return 122;
 	return 0;
 }

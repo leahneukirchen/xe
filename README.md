@@ -21,12 +21,13 @@ Over apply:
 
 ## Usage:
 
-	xe [-0knv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
+	xe [-0Rknv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
 	   | -s SHELLSCRIPT
 	   | -a COMMAND... -- ARGS...
 	   | -A ARGSEP COMMAND... ARGSEP ARGS...
 
 * `-0`: input filenames are seperated by NUL bytes (default: newlines).
+* `-R`: return with status 122 when no arguments have been passed.
 * `-k`: keep going: don't stop when a command failed to execute.
 * `-n`: don't run the commands, just print them.
 * `-v`: print commands before running them.
@@ -54,6 +55,9 @@ Like GNU and OpenBSD xargs:
 * 126 if the command cannot be run
 * 127 if the command is not found
 * 1 if some other error occurred.
+
+Additionally, 122 is returned when `-R` is passed and no
+input/arguments were passed.
 
 ## Installation
 
