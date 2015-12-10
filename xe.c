@@ -240,7 +240,7 @@ main(int argc, char *argv[], char *envp[])
 	argmax -= 4 * 1024;  // subtract 4k for safety
 	if (argmax > 128 * 1024)  // upper bound
 		argmax = 128 * 1024;
-	if (argmax <= 0) {  // lower bound
+	if (argmax <= 0)  // lower bound
 		argmax = _POSIX_ARG_MAX;
 
 	traceout = stdout;
