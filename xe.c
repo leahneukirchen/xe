@@ -143,14 +143,6 @@ scanargs()
 	char *s = buf;
 	size_t i;
 
-	if (argslen + 1 >= argscap) {
-		while (argslen + 1 >= argscap)
-			argscap *= 2;
-		args = realloc(args, sizeof args[0] * argscap);
-		if (!args)
-			exit(1);
-	}
-
 	for (i = 0; i < argslen; i++) {
 		args[i] = s;
 		s += strlen(s) + 1;
@@ -163,7 +155,7 @@ pusharg(const char *a)
 {
 	size_t l = strlen(a) + 1;   // including nul
 
-	if (buflen >= argmax - l) {
+	if (buflen >= argmax - l || argslen + 1 >= argscap) {
 		push_overflowed = 1;
 		return 0;
 	}
@@ -235,7 +227,7 @@ main(int argc, char *argv[])
 	bufcap = 4096;
 	buf = malloc(bufcap);
 
-	argscap = 4096;
+	argscap = 8192;
 	args = malloc(sizeof args[0] * argscap);
 
 	if (!buf || !args)
