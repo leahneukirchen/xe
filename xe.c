@@ -161,7 +161,8 @@ pusharg(const char *a)
 	}
 
 	if (buflen + l > bufcap) {
-		bufcap *= 2;
+		while (buflen + l > bufcap)
+			bufcap *= 2;
 		buf = realloc(buf, bufcap);
 		if (!args)
 			exit(1);
