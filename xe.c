@@ -43,8 +43,8 @@ static char **args;
 static size_t argslen;
 static size_t argscap;
 
-static char *getarg_line = 0;
-static size_t getarg_len = 0;
+static char *line = 0;
+static size_t linelen = 0;
 
 static char *
 getarg()
@@ -56,17 +56,17 @@ getarg()
 			return 0;
 	}
 
-	int read = getdelim(&getarg_line, &getarg_len, delim, stdin);
+	int read = getdelim(&line, &linelen, delim, stdin);
 	if (read == -1) {
 		if (feof(stdin))
 			return 0;
 		else
 			exit(1);
 	}
-	if (getarg_line[read-1] == delim)  // strip delimiter
-		getarg_line[read-1] = 0;
+	if (line[read-1] == delim)  // strip delimiter
+		line[read-1] = 0;
 
-	return getarg_line;
+	return line;
 }
 
 static int
@@ -351,7 +351,7 @@ keeparg:
 
 	free(buf);
 	free(args);
-	free(getarg_line);
+	free(line);
 
 	if (Rflag && iterations == 0)
 		return 122;
