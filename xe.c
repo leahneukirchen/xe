@@ -219,7 +219,7 @@ run()
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, char *argv[], char *envp[])
 {
 	char c;
 	int i, cmdend;
@@ -235,7 +235,12 @@ main(int argc, char *argv[])
 		exit(1);
 
 	argmax = sysconf(_SC_ARG_MAX);
-	if (argmax <= 0)
+	while (*envp)  // subtract size of environment
+		argmax -= strlen(*envp++) + 1 + sizeof(*envp);
+	argmax -= 4 * 1024;  // subtract 4k for safety
+	if (argmax > 128 * 1024)  // upper bound
+		argmax = 128 * 1024;
+	if (argmax <= 0) {  // lower bound
 		argmax = _POSIX_ARG_MAX;
 
 	traceout = stdout;
