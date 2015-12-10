@@ -33,6 +33,7 @@ Over apply:
 * `-v`: print commands before running them.
 * `-I`: replace occurences of *arg* with the argument (default: `{}`).
 * `-N`: pass upto *maxargs* arguments to each COMMAND (default: 1).
+  `-N0` will pass as many arguments as possible.
 * `-j`: run up to *maxjobs* processes concurrently.
 * `COMMAND...`: default operation: each command line argument is
   passed as-is, `{}` is replaced by the argument (not with `-N` > 1).

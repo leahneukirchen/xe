@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <limits.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +23,6 @@ static char delim = '\n';
 static char default_replace[] = "{}";
 static char *replace = default_replace;
 static char *argsep;
-static char **args;
 static char *sflag;
 
 static int maxatonce = 1;
@@ -31,14 +31,16 @@ static int runjobs = 0;
 static int Rflag, Aflag, aflag, kflag, nflag, vflag;
 static long iterations = 0;
 
-static char *
-xstrdup(const char *s)
-{
-	char *d = strdup(s);
-	if (!d)
-		exit(1);
-	return d;
-}
+static size_t argmax;
+static int push_overflowed;
+
+static char *buf;
+static size_t buflen;
+static size_t bufcap;
+
+static char **args;
+static size_t argslen;
+static size_t argscap;
 
 static char *getarg_line = 0;
 static size_t getarg_len = 0;
@@ -48,7 +50,7 @@ getarg()
 {
 	if (aflag || Aflag) {
 		if (args && *args)
-			return xstrdup(*args++);
+			return *args++;
 		else
 			return 0;
 	}
@@ -63,7 +65,7 @@ getarg()
 	if (getarg_line[read-1] == delim)  // strip delimiter
 		getarg_line[read-1] = 0;
 
-	return xstrdup(getarg_line);
+	return getarg_line;
 }
 
 static int
@@ -120,33 +122,80 @@ shquote(const char *s)
 }
 
 static int
-trace(char *cmd[])
+trace()
 {
-	int i;
-	
-	for (i = 0; cmd[i]; i++) {
+	size_t i;
+
+	for (i = 0; i < argslen; i++) {
 		if (i > 0)
 			printf(" ");
-		shquote(cmd[i]);
+		shquote(args[i]);
 	}
 	printf("\n");
 
 	return 0;
 }
 
+static void
+scanargs()
+{
+	char *s = buf;
+	size_t i;
+
+	if (argslen + 1 >= argscap) {
+		while (argslen + 1 >= argscap)
+			argscap *= 2;
+		args = realloc(args, sizeof args[0] * argscap);
+		if (!args)
+			exit(1);
+	}
+
+	for (i = 0; i < argslen; i++) {
+		args[i] = s;
+		s += strlen(s) + 1;
+	}
+	args[i] = 0;
+}
+
 static int
-run(char *cmd[])
+pusharg(const char *a)
+{
+	size_t l = strlen(a) + 1;   // including nul
+
+	if (buflen >= argmax - l) {
+		push_overflowed = 1;
+		return 0;
+	}
+
+	if (buflen + l > bufcap) {
+		bufcap *= 2;
+		buf = realloc(buf, bufcap);
+		if (!args)
+			exit(1);
+	}
+
+	memcpy(buf + buflen, a, l);
+	buflen += l;
+	argslen++;
+
+	return 1;
+}
+
+static int
+run()
 {
 	pid_t pid;
-	int i;
 
 	if (runjobs >= maxjobs)
 		mywait();
 	runjobs++;
 	iterations++;
 
+	scanargs();
+
 	if (vflag || nflag)
-		trace(cmd);
+		trace();
+
 	if (nflag) {
 		runjobs--;
 		return 0;
@@ -163,18 +212,15 @@ run(char *cmd[])
 			if (dup2(fd, 0) != 0)
 				exit(1);
 			close(fd);
-			execvp(cmd[0], cmd);
+			execvp(args[0], args);
 		}
-		fprintf(stderr, "xe: %s: %s\n", cmd[0], strerror(errno));
+		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(errno == ENOENT ? 127 : 126);
 	}
 
 	if (pid < 0)
 		exit(126);
 
-	for (i = 0; cmd[i]; i++)
-		free(cmd[i]);
-	
 	return 0;
 }
 
@@ -183,7 +229,20 @@ main(int argc, char *argv[])
 {
 	char c;
 	int i, cmdend;
-	char *arg, **cmd;
+	char *arg;
+
+	bufcap = 4096;
+	buf = malloc(bufcap);
+
+	argscap = 4096;
+	args = malloc(sizeof args[0] * argscap);
+
+	if (!buf || !args)
+		exit(1);
+
+	argmax = sysconf(_SC_ARG_MAX);
+	if (argmax <= 0)
+		argmax = _POSIX_ARG_MAX;
 
 	while ((c = getopt(argc, argv, "+0A:I:N:Raj:kns:v")) != -1)
 		switch(c) {
@@ -230,22 +289,20 @@ main(int argc, char *argv[])
 		}
 	}
 
-	cmd = calloc(argc-optind+maxatonce+1+
-	    (optind==cmdend ? 2 : 0)+(sflag ? 4 : 0), sizeof (char *));
-	if (!cmd)
-		exit(1);
-
 	while ((arg = getarg())) {
-		int l = 0;
+keeparg:
+		buflen = 0;
+		argslen = 0;
+		push_overflowed = 0;
 
 		if (sflag) {
-			cmd[l++] = xstrdup("/bin/sh");
-			cmd[l++] = xstrdup("-c");
-			cmd[l++] = xstrdup(sflag);
-			cmd[l++] = xstrdup("-");
+			pusharg("/bin/sh");
+			pusharg("-c");
+			pusharg(sflag);
+			pusharg("-");
 		} else if (optind == cmdend) {
-			cmd[l++] = xstrdup("printf");
-			cmd[l++] = xstrdup("%s\\n");
+			pusharg("printf");
+			pusharg("%s\\n");
 		}
 
 		if (maxatonce == 1) {
@@ -253,34 +310,46 @@ main(int argc, char *argv[])
 			int substituted = 0;
 			for (i = optind; i < cmdend; i++) {
 				if (strcmp(argv[i], replace) == 0) {
-					cmd[l++] = arg;
+					pusharg(arg);
 					substituted = 1;
 				} else {
-					cmd[l++] = xstrdup(argv[i]);
+					pusharg(argv[i]);
 				}
 			}
 			if (!substituted)
-				cmd[l++] = arg;
+				pusharg(arg);
 		} else {
 			// just append to cmd
 			for (i = optind; i < cmdend; i++)
-				cmd[l++] = xstrdup(argv[i]);
-			cmd[l++] = arg;
-			for (i = 0; i < maxatonce - 1; i++) {
-				cmd[l] = getarg();
-				if (!cmd[l++])
-					break;
+				pusharg(argv[i]);
+			pusharg(arg);
+			if (!push_overflowed) {
+				for (i = 0; maxatonce < 1 || i < maxatonce - 1; i++) {
+					arg = getarg();
+					if (!arg)
+						break;
+					if (!pusharg(arg)) {
+						run();
+						goto keeparg;
+					}
+				}
 			}
 		}
-		cmd[l] = 0;
-		run(cmd);
+
+		if (push_overflowed) {
+			fprintf(stderr, "xe: fixed argument list too long\n");
+			exit(1);
+		}
+		run();
 	}
 
 	while (mywait())
 		;
 
-	free(cmd);
+	free(buf);
+	free(args);
 	free(getarg_line);
+
 	if (Rflag && iterations == 0)
 		return 122;
 	return 0;
