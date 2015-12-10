@@ -30,7 +30,7 @@ Over apply:
 * `-R`: return with status 122 when no arguments have been passed.
 * `-k`: keep going: don't stop when a command failed to execute.
 * `-n`: don't run the commands, just print them.
-* `-v`: print commands before running them.
+* `-v`: print commands to standard error before running them.
 * `-I`: replace occurences of *arg* with the argument (default: `{}`).
 * `-N`: pass upto *maxargs* arguments to each COMMAND (default: 1).
   `-N0` will pass as many arguments as possible.

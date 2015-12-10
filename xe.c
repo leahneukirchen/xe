@@ -30,6 +30,7 @@ static int maxjobs = 1;
 static int runjobs = 0;
 static int Rflag, Aflag, aflag, kflag, nflag, vflag;
 static long iterations = 0;
+static FILE *traceout;
 
 static size_t argmax;
 static int push_overflowed;
@@ -108,17 +109,17 @@ shquote(const char *s)
 	                "\021\022\023\024\025\026\027\030"
 	                "\031\032\033\034\035\036\037\040"
 	                "`^#*[]=|\\?${}()'\"<>&;\127")) {
-		printf("%s", s);
+		fprintf(traceout, "%s", s);
 		return;
 	}
 
-	putchar('\'');
+	fprintf(traceout, "\'");
 	for (; *s; s++)
 		if (*s == '\'')
-			printf("'\\''");
+			fprintf(traceout, "'\\''");
 		else
-			putchar(*s);
-	putchar('\'');
+			fprintf(traceout, "%c", *s);
+	fprintf(traceout, "\'");
 }
 
 static int
@@ -128,10 +129,10 @@ trace()
 
 	for (i = 0; i < argslen; i++) {
 		if (i > 0)
-			printf(" ");
+			fprintf(traceout, " ");
 		shquote(args[i]);
 	}
-	printf("\n");
+	fprintf(traceout, "\n");
 
 	return 0;
 }
@@ -244,6 +245,8 @@ main(int argc, char *argv[])
 	if (argmax <= 0)
 		argmax = _POSIX_ARG_MAX;
 
+	traceout = stdout;
+
 	while ((c = getopt(argc, argv, "+0A:I:N:Raj:kns:v")) != -1)
 		switch(c) {
 		case '0': delim = '\0'; break;
@@ -256,7 +259,7 @@ main(int argc, char *argv[])
 		case 'k': kflag++; break;
 		case 'n': nflag++; break;
 		case 's': sflag = optarg; break;
-		case 'v': vflag++; break;
+		case 'v': vflag++; traceout = stderr; break;
 		default:
 			fprintf(stderr, 
 			    "Usage: %s [-0Rknv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
