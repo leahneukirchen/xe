@@ -9,7 +9,7 @@ or arguments, which includes the best features of `xargs(1)` and
 ## Benefits
 
 Over xargs:
-* Sane defaults (behaves like `xargs -d'\n' -I{} -L1 -n1 -r`).
+* Sane defaults (behaves like `xargs -d'\n' -I{} -n1 -r`).
 * No weird parsing, arguments are seperated linewise or by NUL byte.
 * Can also take arguments from command-line.
 * No shell involved unless `-s` is used.
