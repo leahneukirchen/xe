@@ -1,0 +1,143 @@
+.Dd January 4, 2016
+.Dt XE 1
+.Os
+.Sh NAME
+.Nm xe
+.Nd run command for each line or argument
+.Sh SYNOPSIS
+.Nm
+.Op Fl 0Rknv
+.Op Fl I Ar arg
+.Op Fl N Ar maxargs
+.Op Fl j Ar maxjobs
+.Ar command\ ...
+.Nm
+.Op Ar flags\ ...
+.Fl s Ar shellscript
+.Nm
+.Op Ar flags\ ...
+.Fl a Ar command\ ... Cm -- Ar args\ ...
+.Nm
+.Op Ar flags\ ...
+.Fl A Ar argsep Ar command\ ... Ar argsep Ar args\ ...
+.Sh DESCRIPTION
+.Nm
+is a new tool for constructing command lines from file listings
+or arguments, which includes the best features of
+.Xr xargs 1
+and
+.Xr apply 1 .
+.Pp
+.Nm
+means
+.Dq execute for every ... .
+.Pp
+.Nm
+supports different ways to get arguments:
+.Bl -tag -width Ds
+.It Ar command\ ...
+By default, arguments are read from standard input separated by newlines.
+The command is constructed by taking the command line parameters, replacing
+.Ar arg
+with the read argument and then using
+.Xr execvp 3
+to run the command.
+In this mode, no shell is involved and
+.Ar arg
+must appears as its own word.
+.Pp
+If no argument is passed, default is
+.Sq Ic printf %s\en .
+.It Fl s Ar shellscript
+In this mode, the single argument
+.Ar shellscript
+is executed using
+.Ic sh -c .
+In the script, the passed arguments can be accessed using $1, $2, ...
+.It Fl a Ar command\ ... Cm -- Ar args\ ...
+In this mode, all arguments after
+.Cm --
+are passed as arguments to the command.
+.It Fl A Ar argsep Ar command\ ... Ar argsep Ar args\ ...
+Same as previous, but a custom argument separator
+.Ar argsep
+is used to distinguish between command and arguments.
+.El
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl 0
+Input filenames are seperated by NUL bytes (instead of newlines, which
+is the default)
+.It Fl R
+Return with status 122 when no arguments have been passed.
+.It Fl k
+Keep going:
+Don't stop when a command failed to execute.
+.It Fl n
+Dry run: don't run the commands, just print them.
+.It Fl v
+Verbose: print commands to standard error before running them.
+.It Fl I Ar arg
+Replace occurences of
+.Ar arg
+in the command with the argument.
+(default:
+.Cm {} )
+.It Fl N Ar maxargs
+Pass up to
+.Ar maxargs
+arguments to each command (default: 1).
+.br
+Using
+.Fl N0
+will pass as many arguments as possible.
+.It Fl j Ar maxjobs
+Run up to
+.Ar maxjobs
+processes concurrently.
+.El
+.Sh ENVIRONMENT
+The environment variable
+.Ev ITER
+is passed to the child process and incremented on every command execution.
+.Sh EXIT STATUS
+.Nm
+uses the convention of GNU and OpenBSD xargs:
+.Bl -tag -compact -width Ds
+.It 0
+on success
+.It 123
+if any invocation of the command exited with status 1 to 125.
+.It 124
+if the command exited with status 255
+.It 125
+if the command was killed by a signal
+.It 126
+if the command cannot be run
+.It 127
+if the command was not found
+.It 1
+if some other error occured
+.El
+.Pp
+Additionally, 122 is returned when
+.Fl R
+was passed and the command never was executed.
+.Sh SEE ALSO
+.Xr apply 1 ,
+.Xr parallel 1 ,
+.Xr xapply 1 ,
+.Xr xargs 1
+.Sh AUTHORS
+.An Christian Neukirchen Aq Mt chneukirchen@gmail.com
+.Sh LICENSE
+.Nm
+is in the public domain.
+.Pp
+To the extent possible under law,
+the creator of this work
+has waived all copyright and related or
+neighboring rights to this work.
+.Pp
+.Lk http://creativecommons.org/publicdomain/zero/1.0/
