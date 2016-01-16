@@ -1,0 +1,228 @@
+#!/bin/sh
+printf '1..38\n'
+
+set -e
+
+: ${XE:=./xe}
+
+necho() { for a; do printf '%s\n' "$a"; done; }
+
+check_output() {
+  msg=$1
+  expected="$(cat)"
+  shift
+  if output="$(eval "$@" 2>&1)"; then
+    if [ "$output" = "$expected" ]; then
+      printf 'ok - %s\n' "$msg"
+      return
+    fi
+  fi
+  printf 'not ok - %s\n' "$msg"
+  printf 'Unexpected output:\n%s\n' "$output" | sed 's/^/# /'
+}
+
+printf '# simple tests\n'
+
+check_output 'single argument run' 'necho 1 2 3 | $XE echo' <<EOF
+1
+2
+3
+EOF
+
+check_output 'dual argument run' 'necho 1 2 3 4 5 | $XE -N2 echo' <<EOF
+1 2
+3 4
+5
+EOF
+
+check_output 'unlimited argument run' 'necho 1 2 3 4 5 | $XE -N0 echo' <<EOF
+1 2 3 4 5
+EOF
+
+check_output 'empty input run' 'true | $XE echo a' <<EOF
+EOF
+
+check_output 'dry run' 'necho a b c | $XE -n echo x' <<EOF
+echo x a
+echo x b
+echo x c
+EOF
+
+check_output 'dry run quoting' 'necho a "b b" c | $XE -n echo x' <<EOF
+echo x a
+echo x 'b b'
+echo x c
+EOF
+
+check_output 'verbose run' 'necho a b c | $XE -v echo x' <<EOF
+echo x a
+x a
+echo x b
+x b
+echo x c
+x c
+EOF
+
+check_output 'with no command' 'necho 1 2 3 | $XE -N2' <<EOF
+1
+2
+3
+EOF
+
+check_output 'using {}' 'necho 1 2 3 | $XE echo a {} x' <<EOF
+a 1 x
+a 2 x
+a 3 x
+EOF
+
+check_output 'using {} twice' 'necho 1 2 3 | $XE echo {} x {}' <<EOF
+1 x {}
+2 x {}
+3 x {}
+EOF
+
+check_output 'using -I%' 'necho 1 2 3 | $XE -I% echo {} x %' <<EOF
+{} x 1
+{} x 2
+{} x 3
+EOF
+
+check_output 'using -I "" to disable' 'necho 1 2 3 | $XE -I "" echo {} x %' <<EOF
+{} x % 1
+{} x % 2
+{} x % 3
+EOF
+
+check_output 'using {} with multiple arguments' 'necho 1 2 3 | $XE -N2 echo a {} x {}' <<EOF
+a 1 2 x {}
+a 3 x {}
+EOF
+
+check_output 'using -0' 'printf "foo\0bar\0quux" | $XE -0 echo' <<EOF
+foo
+bar
+quux
+EOF
+
+check_output 'using -a' '$XE -a echo -- 1 2 3' <<EOF
+1
+2
+3
+EOF
+
+check_output 'using -a with no arguments' '$XE -a echo' <<EOF
+EOF
+
+check_output 'using -a with no command' '$XE -N2 -a -- 1 2 3' <<EOF
+1
+2
+3
+EOF
+
+check_output 'using -A%' '$XE -A% echo -- % 1 2 3' <<EOF
+-- 1
+-- 2
+-- 3
+EOF
+
+check_output 'using -a with no arguments' '$XE -A% echo' <<EOF
+EOF
+
+check_output 'using -a with no command' '$XE -N2 -A% % 1 2 3' <<EOF
+1
+2
+3
+EOF
+
+check_output 'using -s' 'necho 1 2 3 | $XE -s "echo x\$1"' <<EOF
+x1
+x2
+x3
+EOF
+
+check_output 'using -s with -N0' 'necho 1 2 3 | $XE -N0 -s "echo x\$@"' <<EOF
+x1 2 3
+EOF
+
+check_output 'using -s with -a' '$XE -s "echo x\$@" -a 1 2 3' <<EOF
+x1
+x2
+x3
+EOF
+
+check_output 'using -s with -a' '$XE -a -s "echo x\$@" 1 2 3' <<EOF
+x1
+x2
+x3
+EOF
+
+check_output 'using -s with -a' '$XE -a -s "echo x\$@" -- 1 2 3' <<EOF
+x1
+x2
+x3
+EOF
+
+check_output 'with ITER' '$XE -a -s "echo \$ITER" -- a b c' <<EOF
+1
+2
+3
+EOF
+
+printf '# error handling\n'
+
+check_output 'exit code on success' 'true | $XE; echo $?' <<EOF
+0
+EOF
+
+check_output 'exit code on other error' 'true | $XE -j NaN 2>/dev/null || echo $?' <<EOF
+1
+EOF
+
+check_output 'exit code on when command fails with 1-125' 'necho a | $XE -s "exit 42" || echo $?' <<EOF
+123
+EOF
+
+check_output 'exit code on when command fails with 255' 'necho a | $XE -s "exit 255" 2>/dev/null || echo $?' <<EOF
+124
+EOF
+
+check_output 'exit code when process was killed' 'necho a | $XE -s "kill -HUP \$\$" 2>/dev/null || echo $?' <<EOF
+125
+EOF
+
+check_output 'exit code when command cannot be run' 'necho a | $XE /dev/null/calc.exe 2>/dev/null || echo $?' <<EOF
+126
+EOF
+
+check_output 'exit code when command was not found' 'necho a | $XE /bin/calc.exe 2>/dev/null || echo $?' <<EOF
+127
+EOF
+
+check_output 'exit code on empty input when run with -R' 'true | $XE -R echo a || echo $?' <<EOF
+122
+EOF
+
+check_output 'stops on first error' 'necho a b c | $XE -s "if [ b = \$1 ]; then false; else echo \$1; fi" || echo $?' <<EOF
+a
+123
+EOF
+
+check_output 'doesn'\''t stop on errors with -k' 'necho a b c | $XE -k -s "if [ b = \$1 ]; then false; else echo \$1; fi"' <<EOF
+a
+c
+EOF
+
+printf '# limit checks, expecting maximal POSIX limits available\n'
+
+check_output 'argscap check' 'head -c 17711 /dev/zero | tr "\0" "\012" | $XE -N0 -s "echo \$#"' <<EOF
+8187
+8187
+1337
+EOF
+
+bloat() { perl -e 'print "x"x8000, "\n" for 1..42'; }
+check_output 'argslen check' 'bloat | $XE -N0 -s "echo \$#"' <<EOF
+16
+16
+10
+EOF

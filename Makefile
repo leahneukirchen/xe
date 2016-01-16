@@ -12,6 +12,9 @@ all: $(ALL)
 clean: FRC
 	rm -f $(ALL)
 
+check: FRC all
+	prove -v ./tests
+
 install: FRC all
 	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
 	install -m0755 $(ALL) $(DESTDIR)$(BINDIR)
