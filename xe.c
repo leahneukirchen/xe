@@ -307,7 +307,7 @@ main(int argc, char *argv[], char *envp[])
 			pusharg("-c");
 			pusharg(sflag);
 			pusharg("-");
-		} else if (optind == cmdend) {
+		} else if (optind >= cmdend) {
 			pusharg("printf");
 			pusharg("%s\\n");
 		}
