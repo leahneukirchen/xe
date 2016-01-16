@@ -86,13 +86,13 @@ mywait()
 		if (WEXITSTATUS(status) >= 1 && WEXITSTATUS(status) <= 125) {
 			exit(123);
 		} else if (WEXITSTATUS(status) == 255) {
-			fprintf(stderr, "xe: %d exited with status 255\n", pid);
+			fprintf(stderr, "xe: pid %d exited with status 255\n", pid);
 			exit(124);
 		} else if (WEXITSTATUS(status) > 125) {
 			exit(WEXITSTATUS(status));
 		}
 	} else if (WIFSIGNALED(status)) {
-		fprintf(stderr, "xe: %d terminated by signal %d\n",
+		fprintf(stderr, "xe: pid %d terminated by signal %d\n",
 		    pid, WTERMSIG(status));
 		exit(125);
 	}
