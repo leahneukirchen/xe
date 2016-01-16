@@ -43,6 +43,8 @@ static char **args;
 static size_t argslen;
 static size_t argscap;
 
+static char **inargs;
+
 static char *line = 0;
 static size_t linelen = 0;
 
@@ -50,8 +52,8 @@ static char *
 getarg()
 {
 	if (aflag || Aflag) {
-		if (args && *args)
-			return *args++;
+		if (inargs && *inargs)
+			return *inargs++;
 		else
 			return 0;
 	}
@@ -272,29 +274,28 @@ main(int argc, char *argv[], char *envp[])
 	if (aflag) {  // find first -- in argv
 		for (i = 1; i < argc; i++)
 			if (strcmp(argv[i], "--") == 0) {
-				args = argv + i+1;
+				inargs = argv + i+1;
 				cmdend = i;
 				break;
 			}
 		if (sflag) {  // e.g. on xe -s 'echo $1' -a 1 2 3
 			cmdend = optind;
-			args = argv + cmdend;
+			inargs = argv + cmdend;
 		}
 	} else if (Aflag) {  // find first argsep after optind
 		for (i = optind; i < argc; i++) {
 			if (strcmp(argv[i], argsep) == 0) {
-				args = argv + i+1;
+				inargs = argv + i+1;
 				cmdend = i;
 				break;
 			}
 		}
 	}
 
-	while ((arg = getarg())) {
-keeparg:
+	arg = getarg();
+	while (arg) {
 		buflen = 0;
 		argslen = 0;
-		push_overflowed = 0;
 
 		if (sflag) {
 			pusharg("/bin/sh");
