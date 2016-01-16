@@ -81,9 +81,15 @@ Verbose: print commands to standard error before running them.
 .It Fl I Ar arg
 Replace occurences of
 .Ar arg
-in the command with the argument.
 (default:
 .Cm {} )
+in the command with the argument(s).
+Pass an empty
+.Ar arg
+to disable the replace function.
+Contrary to
+.Xr xargs 1
+this also works when multiple arguments are to be inserted.
 .It Fl N Ar maxargs
 Pass up to
 .Ar maxargs

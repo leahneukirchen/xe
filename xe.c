@@ -33,7 +33,6 @@ static long iterations = 0;
 static FILE *traceout;
 
 static size_t argmax;
-static int push_overflowed;
 
 static char *buf;
 static size_t buflen;
@@ -42,6 +41,7 @@ static size_t bufcap;
 static char **args;
 static size_t argslen;
 static size_t argscap;
+static size_t argsresv;
 
 static char **inargs;
 
@@ -157,10 +157,8 @@ pusharg(const char *a)
 {
 	size_t l = strlen(a) + 1;   // including nul
 
-	if (buflen >= argmax - l || argslen + 1 >= argscap) {
-		push_overflowed = 1;
+	if (buflen >= argmax - l - argsresv || argslen + 1 >= argscap)
 		return 0;
-	}
 
 	if (buflen + l > bufcap) {
 		while (buflen + l > bufcap)
@@ -220,11 +218,18 @@ run()
 	return 0;
 }
 
+void
+toolong()
+{
+	fprintf(stderr, "xe: fixed argument list too long\n");
+	exit(1);
+}
+
 int
 main(int argc, char *argv[], char *envp[])
 {
 	char c;
-	int i, cmdend;
+	int i, j, cmdend;
 	char *arg;
 
 	bufcap = 4096;
@@ -307,41 +312,35 @@ main(int argc, char *argv[], char *envp[])
 			pusharg("%s\\n");
 		}
 
-		if (maxatonce == 1) {
-			// substitute {}
-			int substituted = 0;
-			for (i = optind; i < cmdend; i++) {
-				if (strcmp(argv[i], replace) == 0) {
-					pusharg(arg);
-					substituted = 1;
-				} else {
-					pusharg(argv[i]);
-				}
-			}
-			if (!substituted)
-				pusharg(arg);
-		} else {
-			// just append to cmd
-			for (i = optind; i < cmdend; i++)
-				pusharg(argv[i]);
-			pusharg(arg);
-			if (!push_overflowed) {
-				for (i = 0; maxatonce < 1 || i < maxatonce - 1; i++) {
-					arg = getarg();
-					if (!arg)
-						break;
-					if (!pusharg(arg)) {
-						run();
-						goto keeparg;
-					}
-				}
-			}
+		for (i = optind; i < cmdend; i++) {
+			if (*replace && strcmp(argv[i], replace) == 0)
+				break;
+			if (!pusharg(argv[i]))
+				toolong();
 		}
 
-		if (push_overflowed) {
-			fprintf(stderr, "xe: fixed argument list too long\n");
-			exit(1);
+		if (!pusharg(arg))
+			toolong();
+		arg = getarg();
+		i++;
+
+		// reserve space for final arguments
+		for (argsresv = 0, j = i; j < cmdend; j++)
+			argsresv += 1 + strlen(argv[j]);
+
+		// fill with up to maxatonce arguments
+		for (j = 0; maxatonce < 1 || j < maxatonce-1; j++) {
+			if (!arg)
+				break;
+			if (!pusharg(arg))
+				break;
+			arg = getarg();
 		}
+
+		for (argsresv = 0, j = i; j < cmdend; j++)
+			if (!pusharg(argv[i]))
+				toolong();
+
 		run();
 	}
 

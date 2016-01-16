@@ -13,6 +13,7 @@ Over xargs:
 * No weird parsing, arguments are seperated linewise or by NUL byte.
 * Can also take arguments from command-line.
 * No shell involved unless `-s` is used.
+* `{}` replacing possible with multiple arguments.
 
 Over apply:
 * Parallel mode.
@@ -31,7 +32,8 @@ Over apply:
 * `-k`: keep going: don't stop when a command failed to execute.
 * `-n`: don't run the commands, just print them.
 * `-v`: print commands to standard error before running them.
-* `-I`: replace occurences of *arg* with the argument (default: `{}`).
+* `-I`: replace occurences of *arg* with the argument(s) (default: `{}`).
+  Use an empty *arg* to disable the replace function.
 * `-N`: pass upto *maxargs* arguments to each COMMAND (default: 1).
   `-N0` will pass as many arguments as possible.
 * `-j`: run up to *maxjobs* processes concurrently.
