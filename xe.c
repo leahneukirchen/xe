@@ -361,7 +361,7 @@ main(int argc, char *argv[], char *envp[])
 		}
 
 		for (argsresv = 0, j = i; j < cmdend; j++)
-			if (!pusharg(argv[i]))
+			if (!pusharg(argv[j]))
 				toolong();
 
 		run();
