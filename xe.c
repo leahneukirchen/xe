@@ -226,6 +226,29 @@ toolong()
 }
 
 int
+parse_jobs(char *s)
+{
+	char *e;
+	int n;
+
+	errno = 0;
+	n = strtol(s, &e, 10);
+	if (errno != 0 || *e) {
+		fprintf(stderr, "xe: can't parse number '%s'.\n", s);
+		exit(1);
+	}
+
+#ifdef _SC_NPROCESSORS_ONLN
+	if (n <= 0)
+		n = (int)sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+	if (n <= 0)
+		n = 1;
+
+	return n;
+}
+
+int
 main(int argc, char *argv[], char *envp[])
 {
 	char c;
@@ -260,7 +283,7 @@ main(int argc, char *argv[], char *envp[])
 		case 'N': maxatonce = atoi(optarg); break;
 		case 'R': Rflag++; break;
 		case 'a': aflag++; break;
-		case 'j': maxjobs = atoi(optarg); break;
+		case 'j': maxjobs = parse_jobs(optarg); break;
 		case 'k': kflag++; break;
 		case 'n': nflag++; break;
 		case 's': sflag = optarg; break;

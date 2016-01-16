@@ -37,6 +37,7 @@ Over apply:
 * `-N`: pass upto *maxargs* arguments to each COMMAND (default: 1).
   `-N0` will pass as many arguments as possible.
 * `-j`: run up to *maxjobs* processes concurrently.
+  `-j0` will run as many processes as there are CPU cores running.
 * `COMMAND...`: default operation: each command line argument is
   passed as-is, `{}` is replaced by the argument (not with `-N` > 1).
 * `-s SHELLSCRIPT`: The argument `SHELLSCRIPT` is evaluated using `/bin/sh`
