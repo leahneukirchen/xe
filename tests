@@ -18,7 +18,9 @@ check_output() {
     fi
   fi
   printf 'not ok - %s\n' "$msg"
-  printf 'Unexpected output:\n%s\n' "$output" | sed 's/^/# /'
+  if [ "$output" != "$expected" ]; then
+    printf 'Unexpected output:\n%s\n' "$output" | sed 's/^/# /'
+  fi
 }
 
 printf '# simple tests\n'
