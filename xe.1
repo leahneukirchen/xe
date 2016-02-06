@@ -6,7 +6,7 @@
 .Nd run command for each line or argument
 .Sh SYNOPSIS
 .Nm
-.Op Fl 0Rknv
+.Op Fl 0FRnv
 .Op Fl I Ar arg
 .Op Fl N Ar maxargs
 .Op Fl j Ar maxjobs
@@ -69,11 +69,11 @@ The options are as follows:
 .It Fl 0
 Input filenames are seperated by NUL bytes (instead of newlines, which
 is the default)
+.It Fl F
+Fatal:
+stop and exit when a command execution failed.
 .It Fl R
 Return with status 122 when no arguments have been passed.
-.It Fl k
-Keep going:
-Don't stop when a command failed to execute.
 .It Fl n
 Dry run: don't run the commands, just print them.
 .It Fl v

@@ -22,14 +22,14 @@ Over apply:
 
 ## Usage:
 
-	xe [-0Rknv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
+	xe [-0FRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
 	   | -s SHELLSCRIPT
 	   | -a COMMAND... -- ARGS...
 	   | -A ARGSEP COMMAND... ARGSEP ARGS...
 
 * `-0`: input filenames are seperated by NUL bytes (default: newlines).
+* `-F`: fatal: stop after first failing command.
 * `-R`: return with status 122 when no arguments have been passed.
-* `-k`: keep going: don't stop when a command failed to execute.
 * `-n`: don't run the commands, just print them.
 * `-v`: print commands to standard error before running them.
 * `-I`: replace occurences of *arg* with the argument(s) (default: `{}`).

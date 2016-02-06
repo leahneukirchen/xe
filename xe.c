@@ -28,7 +28,8 @@ static char *sflag;
 static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
-static int Rflag, Aflag, aflag, kflag, nflag, vflag;
+static int failed = 0;
+static int Aflag, Fflag, Rflag, aflag, nflag, vflag;
 static long iterations = 0;
 static FILE *traceout;
 
@@ -84,9 +85,13 @@ mywait()
 		// no other error possible?
 	}	
 	
-	if (WIFEXITED(status) && !kflag) {
+	if (WIFEXITED(status)) {
 		if (WEXITSTATUS(status) >= 1 && WEXITSTATUS(status) <= 125) {
-			exit(123);
+			if (Fflag) {
+				fprintf(stderr, "xe: pid %d exited with status %d\n", pid, WEXITSTATUS(status));
+				exit(123);
+			}
+			failed = 1;
 		} else if (WEXITSTATUS(status) == 255) {
 			fprintf(stderr, "xe: pid %d exited with status 255\n", pid);
 			exit(124);
@@ -275,22 +280,22 @@ main(int argc, char *argv[], char *envp[])
 
 	traceout = stdout;
 
-	while ((c = getopt(argc, argv, "+0A:I:N:Raj:kns:v")) != -1)
+	while ((c = getopt(argc, argv, "+0A:FI:N:Raj:ns:v")) != -1)
 		switch(c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; Aflag++; break;
 		case 'I': replace = optarg; break;
 		case 'N': maxatonce = atoi(optarg); break;
+		case 'F': Fflag++; break;
 		case 'R': Rflag++; break;
 		case 'a': aflag++; break;
 		case 'j': maxjobs = parse_jobs(optarg); break;
-		case 'k': kflag++; break;
 		case 'n': nflag++; break;
 		case 's': sflag = optarg; break;
 		case 'v': vflag++; traceout = stderr; break;
 		default:
 			fprintf(stderr, 
-			    "Usage: %s [-0Rknv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "Usage: %s [-0FRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"
 			    "     | -A ARGSEP COMMAND... ARGSEP ARGS...\n",
@@ -376,5 +381,7 @@ main(int argc, char *argv[], char *envp[])
 
 	if (Rflag && iterations == 0)
 		return 122;
+	if (failed)
+		return 123;
 	return 0;
 }

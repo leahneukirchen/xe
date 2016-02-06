@@ -204,14 +204,15 @@ check_output 'exit code on empty input when run with -R' 'true | $XE -R echo a |
 122
 EOF
 
-check_output 'stops on first error' 'necho a b c | $XE -s "if [ b = \$1 ]; then false; else echo \$1; fi" || echo $?' <<EOF
+check_output 'doesn'\''t stop on errors by default' 'necho a b c | $XE -s "if [ b = \$1 ]; then false; else echo \$1; fi" || echo $?' <<EOF
 a
+c
 123
 EOF
 
-check_output 'doesn'\''t stop on errors with -k' 'necho a b c | $XE -k -s "if [ b = \$1 ]; then false; else echo \$1; fi"' <<EOF
+check_output 'stops on first error with -F' 'necho a b c | $XE -F -s "if [ b = \$1 ]; then false; else echo \$1; fi" 2>/dev/null || echo $?' <<EOF
 a
-c
+123
 EOF
 
 printf '# limit checks, expecting maximal POSIX limits available\n'
