@@ -1,5 +1,5 @@
 #!/bin/sh
-printf '1..38\n'
+printf '1..40\n'
 
 set -e
 
@@ -213,6 +213,15 @@ EOF
 check_output 'stops on first error with -F' 'necho a b c | $XE -F -s "if [ b = \$1 ]; then false; else echo \$1; fi" 2>/dev/null || echo $?' <<EOF
 a
 123
+EOF
+
+check_output 'should close stdin when arguments were read from it' 'necho a b c | $XE -s "sed q"' <<EOF
+EOF
+
+check_output 'should not close stdin when arguments were read from command line' 'yes | $XE -a -s "sed q" -- 1 2 3' <<EOF
+y
+y
+y
 EOF
 
 printf '# limit checks, expecting maximal POSIX limits available\n'

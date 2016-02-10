@@ -205,14 +205,16 @@ run()
 		char iter[32];
 		snprintf(iter, sizeof iter, "%ld", iterations);
 		setenv("ITER", iter, 1);
-		// redirect stdin to /dev/null
-		int fd = open("/dev/null", O_RDONLY);
-		if (fd >= 0) {
-			if (dup2(fd, 0) != 0)
-				exit(1);
-			close(fd);
-			execvp(args[0], args);
+		// redirect stdin to /dev/null when we read arguments from it
+		if (!(aflag || Aflag)) {
+			int fd = open("/dev/null", O_RDONLY);
+			if (fd >= 0) {
+				if (dup2(fd, 0) != 0)
+					exit(1);
+				close(fd);
+			}
 		}
+		execvp(args[0], args);
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(errno == ENOENT ? 127 : 126);
 	}
