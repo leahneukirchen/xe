@@ -13,6 +13,9 @@
 .Ar command\ ...
 .Nm
 .Op Ar flags\ ...
+.Fl f Ar argfile Ar command\ ...
+.Nm
+.Op Ar flags\ ...
 .Fl s Ar shellscript
 .Nm
 .Op Ar flags\ ...
@@ -48,6 +51,13 @@ must appears as its own word.
 .Pp
 If no argument is passed, default is
 .Sq Ic printf %s\en .
+.It Fl f Ar argfile
+Like previous,
+but read arguments from
+.Ar argfile
+instead of standard input.
+.Pp
+This will not close standard input for execution.
 .It Fl s Ar shellscript
 In this mode, the single argument
 .Ar shellscript

@@ -23,6 +23,7 @@ static char delim = '\n';
 static char default_replace[] = "{}";
 static char *replace = default_replace;
 static char *argsep;
+static char *fflag;
 static char *sflag;
 
 static int maxatonce = 1;
@@ -32,6 +33,7 @@ static int failed = 0;
 static int Aflag, Fflag, Rflag, aflag, nflag, vflag;
 static long iterations = 0;
 static FILE *traceout;
+static FILE *input;
 
 static size_t argmax;
 
@@ -59,9 +61,9 @@ getarg()
 			return 0;
 	}
 
-	int read = getdelim(&line, &linelen, delim, stdin);
+	int read = getdelim(&line, &linelen, delim, input);
 	if (read == -1) {
-		if (feof(stdin))
+		if (feof(input))
 			return 0;
 		else
 			exit(1);
@@ -206,7 +208,7 @@ run()
 		snprintf(iter, sizeof iter, "%ld", iterations);
 		setenv("ITER", iter, 1);
 		// redirect stdin to /dev/null when we read arguments from it
-		if (!(aflag || Aflag)) {
+		if (input == stdin) {
 			int fd = open("/dev/null", O_RDONLY);
 			if (fd >= 0) {
 				if (dup2(fd, 0) != 0)
@@ -282,7 +284,7 @@ main(int argc, char *argv[], char *envp[])
 
 	traceout = stdout;
 
-	while ((c = getopt(argc, argv, "+0A:FI:N:Raj:ns:v")) != -1)
+	while ((c = getopt(argc, argv, "+0A:FI:N:Raf:j:ns:v")) != -1)
 		switch(c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; Aflag++; break;
@@ -291,6 +293,7 @@ main(int argc, char *argv[], char *envp[])
 		case 'F': Fflag++; break;
 		case 'R': Rflag++; break;
 		case 'a': aflag++; break;
+		case 'f': fflag = optarg; break;
 		case 'j': maxjobs = parse_jobs(optarg); break;
 		case 'n': nflag++; break;
 		case 's': sflag = optarg; break;
@@ -298,12 +301,27 @@ main(int argc, char *argv[], char *envp[])
 		default:
 			fprintf(stderr, 
 			    "Usage: %s [-0FRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "     | -f ARGFILE COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"
 			    "     | -A ARGSEP COMMAND... ARGSEP ARGS...\n",
 			    argv[0]);
 			exit(1);
 		}
+
+	if (aflag || Aflag) {
+		input = 0;
+	} else if (!fflag || strcmp("-", fflag) == 0) {
+		input = stdin;
+	} else {
+		input = fopen(fflag, "rb");
+		if (!input) {
+			fprintf(stderr, "xe: opening %s: %s\n",
+			    fflag, strerror(errno));
+			exit(1);
+		}
+		fcntl(fileno(input), F_SETFD, FD_CLOEXEC);
+	}
 
 	cmdend = argc;
 	if (aflag) {  // find first -- in argv

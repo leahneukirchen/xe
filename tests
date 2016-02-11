@@ -1,5 +1,5 @@
 #!/bin/sh
-printf '1..40\n'
+printf '1..42\n'
 
 set -e
 
@@ -127,13 +127,17 @@ check_output 'using -A%' '$XE -A% echo -- % 1 2 3' <<EOF
 -- 3
 EOF
 
-check_output 'using -a with no arguments' '$XE -A% echo' <<EOF
+check_output 'using -A% with no arguments' '$XE -A% echo' <<EOF
 EOF
 
-check_output 'using -a with no command' '$XE -N2 -A% % 1 2 3' <<EOF
+check_output 'using -A% with no command' '$XE -N2 -A% % 1 2 3' <<EOF
 1
 2
 3
+EOF
+
+check_output 'using -f' 'necho notme | $XE -f tests echo | grep ^notme || echo success' <<EOF
+success
 EOF
 
 check_output 'using -s' 'necho 1 2 3 | $XE -s "echo x\$1"' <<EOF
@@ -219,6 +223,12 @@ check_output 'should close stdin when arguments were read from it' 'necho a b c 
 EOF
 
 check_output 'should not close stdin when arguments were read from command line' 'yes | $XE -a -s "sed q" -- 1 2 3' <<EOF
+y
+y
+y
+EOF
+
+check_output 'should not close stdin when arguments were read from file' 'yes | $XE -f tests -s "sed q" | sed 3q' <<EOF
 y
 y
 y
