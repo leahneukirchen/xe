@@ -260,8 +260,7 @@ parse_jobs(char *s)
 int
 main(int argc, char *argv[], char *envp[])
 {
-	char c;
-	int i, j, cmdend;
+	int c, i, j, cmdend;
 	char *arg;
 
 	bufcap = 4096;
