@@ -1,4 +1,4 @@
-.Dd January 4, 2016
+.Dd November 30, 2016
 .Dt XE 1
 .Os
 .Sh NAME
@@ -83,7 +83,10 @@ is the default)
 Fatal:
 stop and exit when a command execution failed.
 .It Fl R
-Return with status 122 when no arguments have been passed.
+Return with status 122 when no arguments have been passed
+(instead of 0, the default).
+.Nm
+never executes a command when no arguments are passed.
 .It Fl n
 Dry run: don't run the commands, just print them.
 .It Fl v
