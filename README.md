@@ -10,7 +10,7 @@ or arguments, which includes the best features of `xargs(1)` and
 
 Over xargs:
 * Sane defaults (behaves like `xargs -d'\n' -I{} -n1 -r`).
-* No weird parsing, arguments are seperated linewise or by NUL byte.
+* No weird parsing, arguments are separated linewise or by NUL byte.
 * Can also take arguments from command-line.
 * No shell involved unless `-s` is used.
 * `{}` replacing possible with multiple arguments.
@@ -28,14 +28,14 @@ Over apply:
 	   | -a COMMAND... -- ARGS...
 	   | -A ARGSEP COMMAND... ARGSEP ARGS...
 
-* `-0`: input filenames are seperated by NUL bytes (default: newlines).
+* `-0`: input filenames are separated by NUL bytes (default: newlines).
 * `-F`: fatal: stop after first failing command.
 * `-R`: return with status 122 when no arguments have been passed.
 * `-n`: don't run the commands, just print them.
 * `-v`: print commands to standard error before running them.
-* `-I`: replace occurences of *arg* with the argument(s) (default: `{}`).
+* `-I`: replace occurrences of *arg* with the argument(s) (default: `{}`).
   Use an empty *arg* to disable the replace function.
-* `-N`: pass upto *maxargs* arguments to each COMMAND (default: 1).
+* `-N`: pass up to *maxargs* arguments to each COMMAND (default: 1).
   `-N0` will pass as many arguments as possible.
 * `-j`: run up to *maxjobs* processes concurrently.
   `-j0` will run as many processes as there are CPU cores running.
