@@ -79,7 +79,7 @@ You can also just copy the binary into your `PATH`.
 xe is in the public domain.
 
 To the extent possible under law,
-Christian Neukirchen <chneukirchen@gmail.com>
+Leah Neukirchen <leah@vuxu.org>
 has waived all copyright and related or
 neighboring rights to this work.
 
