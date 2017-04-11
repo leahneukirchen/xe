@@ -342,6 +342,11 @@ main(int argc, char *argv[], char *envp[])
 				break;
 			}
 		}
+		if (i >= argc) {
+			fprintf(stderr, "xe: '-A %s' used but no separator "
+			    "'%s' found in command line.\n", argsep, argsep);
+			exit(1);
+		}
 	}
 
 	arg = getarg();
