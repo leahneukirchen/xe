@@ -349,8 +349,16 @@ main(int argc, char *argv[], char *envp[])
 		}
 	}
 
-	arg = getarg();
-	while (arg) {
+	int keeparg = 0;
+	while (1) {
+		// check if there is an arg from a previous iteration
+		if (!keeparg) {
+			arg = getarg();
+			if (!arg)
+				break;
+		}
+		keeparg = 0;
+
 		buflen = 0;
 		argslen = 0;
 
@@ -373,7 +381,6 @@ main(int argc, char *argv[], char *envp[])
 
 		if (!pusharg(arg))
 			toolong();
-		arg = getarg();
 		i++;
 
 		// reserve space for final arguments
@@ -382,11 +389,15 @@ main(int argc, char *argv[], char *envp[])
 
 		// fill with up to maxatonce arguments
 		for (j = 0; maxatonce < 1 || j < maxatonce-1; j++) {
+			arg = getarg();
 			if (!arg)
 				break;
-			if (!pusharg(arg))
+			if (!pusharg(arg)) {
+				// we are out of space,
+				// deal with this arg in the next iteration
+				keeparg = 1;
 				break;
-			arg = getarg();
+			}
 		}
 
 		for (argsresv = 0, j = i; j < cmdend; j++)
