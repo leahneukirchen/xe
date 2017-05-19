@@ -127,7 +127,8 @@ check_output 'using -A%' '$XE -A% echo -- % 1 2 3' <<EOF
 -- 3
 EOF
 
-check_output 'using -A% with no arguments' '$XE -A% echo' <<EOF
+check_output 'using -A% with no arguments' '$XE -A% echo || true' <<EOF
+xe: '-A %' used but no separator '%' found in command line.
 EOF
 
 check_output 'using -A% with no command' '$XE -N2 -A% % 1 2 3' <<EOF
