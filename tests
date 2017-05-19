@@ -1,5 +1,5 @@
 #!/bin/sh
-printf '1..42\n'
+printf '1..43\n'
 
 set -e
 
@@ -233,6 +233,12 @@ check_output 'should not close stdin when arguments were read from file' 'yes | 
 y
 y
 y
+EOF
+
+printf '# regressions\n'
+
+check_output '0fb64a4 quoting of empty strings' 'printf "foo\n\n" | ./xe -N2 -v true' <<EOF
+true foo ''
 EOF
 
 printf '# limit checks, expecting maximal POSIX limits available\n'
