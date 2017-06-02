@@ -175,7 +175,7 @@ check_output 'with ITER' '$XE -a -s "echo \$ITER" -- a b c' <<EOF
 3
 EOF
 
-check_output 'is eager' '{ echo 1; sleep 1; echo 11 >/dev/stderr; echo 2; } | xe echo' <<EOF
+check_output 'is eager' '{ echo 1; sleep 1; echo 11 >/dev/stderr; echo 2; } | $XE echo' <<EOF
 1
 11
 2
@@ -243,7 +243,7 @@ EOF
 
 printf '# regressions\n'
 
-check_output '0fb64a4 quoting of empty strings' 'printf "foo\n\n" | ./xe -N2 -v true' <<EOF
+check_output '0fb64a4 quoting of empty strings' 'printf "foo\n\n" | $XE -N2 -v true' <<EOF
 true foo ''
 EOF
 
