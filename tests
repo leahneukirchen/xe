@@ -8,19 +8,19 @@ xe() { "${XE:-./xe}" "$@"; }
 necho() { for a; do printf '%s\n' "$a"; done; }
 
 check_output() {
-  msg=$1
-  expected="$(cat)"
-  shift
-  if output="$(eval "$@" 2>&1)"; then
-    if [ "$output" = "$expected" ]; then
-      printf 'ok - %s\n' "$msg"
-      return
-    fi
-  fi
-  printf 'not ok - %s\n' "$msg"
-  if [ "$output" != "$expected" ]; then
-    printf 'Unexpected output:\n%s\n' "$output" | sed 's/^/# /'
-  fi
+	msg=$1
+	expected="$(cat)"
+	shift
+	if output="$(eval "$@" 2>&1)"; then
+		if [ "$output" = "$expected" ]; then
+			printf 'ok - %s\n' "$msg"
+			return
+		fi
+	fi
+	printf 'not ok - %s\n' "$msg"
+	if [ "$output" != "$expected" ]; then
+		printf 'Unexpected output:\n%s\n' "$output" | sed 's/^/# /'
+	fi
 }
 
 printf '# simple tests\n'
