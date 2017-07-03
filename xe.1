@@ -1,4 +1,4 @@
-.Dd November 30, 2016
+.Dd July 3, 2017
 .Dt XE 1
 .Os
 .Sh NAME
@@ -118,6 +118,12 @@ processes concurrently.
 Using
 .Fl j0
 will run as many processes as there are CPU cores running.
+If
+.Ar maxjobs
+ends with an
+.Sq Ic x ,
+it is regarded as a multiplier on the number of running CPU cores
+(rounded down, but using at least one core).
 .El
 .Sh ENVIRONMENT
 The environment variable

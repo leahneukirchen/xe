@@ -240,11 +240,28 @@ parse_jobs(char *s)
 	char *e;
 	int n;
 
-	errno = 0;
-	n = strtol(s, &e, 10);
-	if (errno != 0 || *e) {
-		fprintf(stderr, "xe: can't parse number '%s'.\n", s);
-		exit(1);
+#ifdef _SC_NPROCESSORS_ONLN
+	if (s[strlen(s) - 1] == 'x') {
+		n = (int)sysconf(_SC_NPROCESSORS_ONLN);
+		double d = 0.0;
+		errno = 0;
+		d = strtod(s, &e);
+		if (errno != 0 || *e != 'x' || d <= 0) {
+			fprintf(stderr, "xe: can't parse multiplier '%s'.\n", s);
+			exit(1);
+		}
+		n = (int)(d * n);
+		if (n < 1)
+			n = 1;
+	} else
+#endif
+	{
+		errno = 0;
+		n = strtol(s, &e, 10);
+		if (errno != 0 || *e) {
+			fprintf(stderr, "xe: can't parse number '%s'.\n", s);
+			exit(1);
+		}
 	}
 
 #ifdef _SC_NPROCESSORS_ONLN
