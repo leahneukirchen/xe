@@ -104,6 +104,11 @@ mywait()
 		    pid, WTERMSIG(status));
 		exit(125);
 	}
+
+	if (vflag > 1) {
+		fprintf(traceout, "%ld< %d\n", (long)pid, WEXITSTATUS(status));
+		fflush(traceout);
+	}
 	
 	runjobs--;
 	return 1;
@@ -142,6 +147,7 @@ trace()
 		shquote(args[i]);
 	}
 	fprintf(traceout, "\n");
+	fflush(traceout);
 
 	return 0;
 }
@@ -194,10 +200,8 @@ run()
 
 	scanargs();
 
-	if (vflag || nflag)
-		trace();
-
 	if (nflag) {
+		trace();
 		runjobs--;
 		return 0;
 	}
@@ -223,6 +227,12 @@ run()
 
 	if (pid < 0)
 		exit(126);
+
+	if (vflag) {
+		if (vflag > 1)
+			fprintf(traceout, "%ld> ", (long)pid);
+		trace();
+	}
 
 	return 0;
 }
