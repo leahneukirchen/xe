@@ -279,7 +279,7 @@ run()
 				if (rd == -1)
 					exit(0);
 
-				if (vflag > 1)
+				if (vflag > 1 || Lflag > 1)
 					printf("%04ld= ", iter);
 				fwrite(line, 1, rd, stdout);
 			};
