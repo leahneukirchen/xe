@@ -89,7 +89,7 @@ Run the commands with line-buffered output;
 lines from two jobs will not interleave.
 When used with
 .Fl vv ,
-also prefix each line with the PID
+also prefix each line with the job id
 in such a manner that the output can be piped to
 .Sq Li sort -snk1
 to group it by job.
@@ -102,7 +102,7 @@ never executes a command when no arguments are passed.
 Dry run: don't run the commands, just print them.
 .It Fl v
 Verbose: print commands to standard error before running them.
-When used twice, also print PID and exit status for each command.
+When used twice, also print job id and exit status for each command.
 .It Fl I Ar arg
 Replace occurrences of
 .Ar arg

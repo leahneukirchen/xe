@@ -7,6 +7,7 @@
  */
 
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -45,7 +46,11 @@ static size_t argslen;
 static size_t argscap;
 static size_t argsresv;
 
-static pid_t *children;
+struct child {
+	pid_t pid;  // 0 if empty slot
+	long iter;
+};
+static struct child *children;
 
 static char **inargs;
 
@@ -90,10 +95,8 @@ mywait()
 
 	int i;
 	for (i = 0; i < maxjobs; i++)
-		if (children[i] == pid) {
-			children[i] = 0;
+		if (children[i].pid == pid)
 			goto my_child;
-		}
 
 	return 1;
 
@@ -101,28 +104,31 @@ my_child:
 	if (WIFEXITED(status)) {
 		if (WEXITSTATUS(status) >= 1 && WEXITSTATUS(status) <= 125) {
 			if (Fflag) {
-				fprintf(stderr, "xe: pid %d exited with status %d\n", pid, WEXITSTATUS(status));
+				fprintf(stderr, "xe: job %ld [pid %ld] exited with status %d\n", children[i].iter, (long)pid, WEXITSTATUS(status));
 				exit(123);
 			}
 			failed = 1;
 		} else if (WEXITSTATUS(status) == 255) {
-			fprintf(stderr, "xe: pid %d exited with status 255\n", pid);
+			fprintf(stderr, "xe: job %ld [pid %ld] exited with status 255\n", children[i].iter, (long)pid);
 			exit(124);
 		} else if (WEXITSTATUS(status) > 125) {
 			exit(WEXITSTATUS(status));
 		}
 	} else if (WIFSIGNALED(status)) {
-		fprintf(stderr, "xe: pid %d terminated by signal %d\n",
-		    pid, WTERMSIG(status));
+		fprintf(stderr, "xe: job %ld [pid %ld] terminated by signal %d\n",
+		    children[i].iter, (long)pid, WTERMSIG(status));
 		exit(125);
 	}
 
 	if (vflag > 1) {
-		fprintf(traceout, "%ld< %d\n", (long)pid, WEXITSTATUS(status));
+		fprintf(traceout, "%04ld< status %d\n",
+		    children[i].iter, WEXITSTATUS(status));
 		fflush(traceout);
 	}
-	
+
+	children[i].pid = 0;
 	runjobs--;
+
 	return 1;
 }
 
@@ -254,6 +260,7 @@ run()
 		exit(126);
 
 	if (Lflag) {
+		long iter = iterations;
 		lpid = fork();
 		if (lpid == 0) {  // in line-logging child
 			char *line = 0;
@@ -273,7 +280,7 @@ run()
 					exit(0);
 
 				if (vflag > 1)
-					printf("%ld= ", (long)pid);
+					printf("%04ld= ", iter);
 				fwrite(line, 1, rd, stdout);
 			};
 		}
@@ -286,14 +293,15 @@ run()
 
 	if (vflag) {
 		if (vflag > 1)
-			fprintf(traceout, "%ld> ", (long)pid);
+			fprintf(traceout, "%04ld> ", iterations);
 		trace();
 	}
 
 	int i;
 	for (i = 0; i < maxjobs; i++)
-		if (!children[i]) {
-			children[i] = pid;
+		if (!children[i].pid) {
+			children[i].pid = pid;
+			children[i].iter = iterations;
 			break;
 		}
 
@@ -399,7 +407,7 @@ main(int argc, char *argv[], char *envp[])
 			exit(1);
 		}
 
-	children = calloc(sizeof (pid_t), maxjobs);
+	children = calloc(sizeof (struct child), maxjobs);
 	if (!children)
 		exit(1);
 
