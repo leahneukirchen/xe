@@ -29,7 +29,7 @@ static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
 static int failed = 0;
-static int Aflag, Fflag, Rflag, aflag, nflag, vflag;
+static int Aflag, Fflag, Lflag, Rflag, aflag, nflag, vflag;
 static long iterations = 0;
 static FILE *traceout;
 static FILE *input;
@@ -203,7 +203,7 @@ pusharg(const char *a)
 static int
 run()
 {
-	pid_t pid;
+	pid_t pid, lpid;
 
 	while (runjobs >= maxjobs)
 		mywait();
@@ -216,6 +216,12 @@ run()
 		trace();
 		runjobs--;
 		return 0;
+	}
+
+	int pipefd[2];
+	if (Lflag) {
+		if (pipe(pipefd) < 0)
+			exit(126);
 	}
 
 	pid = fork();
@@ -232,13 +238,51 @@ run()
 				close(fd);
 			}
 		}
+
+		if (Lflag) {
+			if (dup2(pipefd[1], 1) < 0)
+				exit(126);
+			close(pipefd[0]);
+			close(pipefd[1]);
+		}
+
 		execvp(args[0], args);
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(errno == ENOENT ? 127 : 126);
 	}
-
 	if (pid < 0)
 		exit(126);
+
+	if (Lflag) {
+		lpid = fork();
+		if (lpid == 0) {  // in line-logging child
+			char *line = 0;
+			size_t linelen = 0;
+		
+			close(0);
+			close(pipefd[1]);
+			FILE *input = fdopen(pipefd[0], "r");
+			if (!input)
+				exit(126);
+
+			setvbuf(stdout, 0, _IOLBF, 0);
+
+			while (1) {
+				int rd = getdelim(&line, &linelen, '\n', input);
+				if (rd == -1)
+					exit(0);
+
+				if (vflag > 1)
+					printf("%ld= ", (long)pid);
+				fwrite(line, 1, rd, stdout);
+			};
+		}
+		if (lpid < 0)
+			exit(126);
+
+		close(pipefd[0]);
+		close(pipefd[1]);
+	}
 
 	if (vflag) {
 		if (vflag > 1)
@@ -329,11 +373,12 @@ main(int argc, char *argv[], char *envp[])
 
 	traceout = stdout;
 
-	while ((c = getopt(argc, argv, "+0A:FI:N:Raf:j:ns:v")) != -1)
+	while ((c = getopt(argc, argv, "+0A:FI:LN:Raf:j:ns:v")) != -1)
 		switch(c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; Aflag++; break;
 		case 'I': replace = optarg; break;
+		case 'L': Lflag++; break;
 		case 'N': maxatonce = atoi(optarg); break;
 		case 'F': Fflag++; break;
 		case 'R': Rflag++; break;
@@ -345,7 +390,7 @@ main(int argc, char *argv[], char *envp[])
 		case 'v': vflag++; traceout = stderr; break;
 		default:
 			fprintf(stderr, 
-			    "Usage: %s [-0FRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "Usage: %s [-0FLRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
 			    "     | -f ARGFILE COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"
@@ -357,6 +402,9 @@ main(int argc, char *argv[], char *envp[])
 	children = calloc(sizeof (pid_t), maxjobs);
 	if (!children)
 		exit(1);
+
+	if (Lflag && vflag > 1)
+		traceout = stdout;
 
 	if (aflag || Aflag) {
 		input = 0;

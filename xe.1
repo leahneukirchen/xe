@@ -6,7 +6,7 @@
 .Nd run command for each line or argument
 .Sh SYNOPSIS
 .Nm
-.Op Fl 0FRnv
+.Op Fl 0FLRnv
 .Op Fl I Ar arg
 .Op Fl N Ar maxargs
 .Op Fl j Ar maxjobs
@@ -84,6 +84,15 @@ is the default)
 .It Fl F
 Fatal:
 stop and exit when a command execution failed.
+.It Fl L
+Run the commands with line-buffered output;
+lines from two jobs will not interleave.
+When used with
+.Fl vv ,
+also prefix each line with the PID
+in such a manner that the output can be piped to
+.Sq Li sort -snk1
+to group it by job.
 .It Fl R
 Return with status 122 when no arguments have been passed
 (instead of 0, the default).
