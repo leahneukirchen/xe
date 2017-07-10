@@ -45,6 +45,8 @@ static size_t argslen;
 static size_t argscap;
 static size_t argsresv;
 
+static pid_t *children;
+
 static char **inargs;
 
 static char *line = 0;
@@ -85,7 +87,17 @@ mywait()
 			return 0;
 		// no other error possible?
 	}	
-	
+
+	int i;
+	for (i = 0; i < maxjobs; i++)
+		if (children[i] == pid) {
+			children[i] = 0;
+			goto my_child;
+		}
+
+	return 1;
+
+my_child:
 	if (WIFEXITED(status)) {
 		if (WEXITSTATUS(status) >= 1 && WEXITSTATUS(status) <= 125) {
 			if (Fflag) {
@@ -193,7 +205,7 @@ run()
 {
 	pid_t pid;
 
-	if (runjobs >= maxjobs)
+	while (runjobs >= maxjobs)
 		mywait();
 	runjobs++;
 	iterations++;
@@ -233,6 +245,13 @@ run()
 			fprintf(traceout, "%ld> ", (long)pid);
 		trace();
 	}
+
+	int i;
+	for (i = 0; i < maxjobs; i++)
+		if (!children[i]) {
+			children[i] = pid;
+			break;
+		}
 
 	return 0;
 }
@@ -334,6 +353,10 @@ main(int argc, char *argv[], char *envp[])
 			    argv[0]);
 			exit(1);
 		}
+
+	children = calloc(sizeof (pid_t), maxjobs);
+	if (!children)
+		exit(1);
 
 	if (aflag || Aflag) {
 		input = 0;
