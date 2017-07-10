@@ -22,7 +22,7 @@ Over apply:
 
 ## Usage:
 
-	xe [-0FRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
+	xe [-0FLRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...
 	   | -f ARGFILE COMMAND...
 	   | -s SHELLSCRIPT
 	   | -a COMMAND... -- ARGS...
@@ -30,15 +30,21 @@ Over apply:
 
 * `-0`: input filenames are separated by NUL bytes (default: newlines).
 * `-F`: fatal: stop after first failing command.
+* `-L`: run the commands with line-buffered output; lines from two jobs
+  will not interleave.
+* `-LL`: prefix each line with the job id in such a manner that the
+  output can be piped to `sort -snk1` to group it by job.
 * `-R`: return with status 122 when no arguments have been passed.
 * `-n`: don't run the commands, just print them.
 * `-v`: print commands to standard error before running them.
+* `-vv`: print job id and exit status for each command.
 * `-I`: replace occurrences of *arg* with the argument(s) (default: `{}`).
   Use an empty *arg* to disable the replace function.
 * `-N`: pass up to *maxargs* arguments to each COMMAND (default: 1).
   `-N0` will pass as many arguments as possible.
 * `-j`: run up to *maxjobs* processes concurrently.
   `-j0` will run as many processes as there are CPU cores running.
+  `-j2x` will run twice as many processes as there are CPU cores running.
 * `COMMAND...`: default operation: each command line argument is
   passed as-is, `{}` is replaced by the argument (not with `-N` > 1).
 * `-f ARGFILE`: Read arguments from ARGFILE, do not close standard input.
