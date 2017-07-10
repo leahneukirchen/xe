@@ -1,5 +1,5 @@
 #!/bin/sh
-printf '1..44\n'
+printf '1..47\n'
 
 set -e
 
@@ -179,6 +179,22 @@ check_output 'is eager' '{ echo 1; sleep 1; echo 11 >/dev/stderr; echo 2; } | xe
 1
 11
 2
+EOF
+
+check_output 'using -L' '{ echo 1; sleep 1; echo 2; sleep 1; echo 3; } | xe -j2 -L -s "printf \$1; sleep 1; echo \$1"' <<EOF
+11
+22
+33
+EOF
+
+check_output 'using -LL' '{ echo 1; sleep 1; echo 2; sleep 1; echo 3; } | xe -j2 -LL -s "printf \$1; sleep 1; echo \$1"' <<EOF
+0001= 11
+0002= 22
+0003= 33
+EOF
+
+check_output 'using -vvL' '{ echo 1; sleep 1; echo 2; sleep 1; echo 3; } | xe -j2 -vvL -s "printf \$1; sleep 1; echo \$1" | wc -l' <<EOF
+9
 EOF
 
 printf '# error handling\n'
