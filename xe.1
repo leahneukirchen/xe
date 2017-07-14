@@ -1,4 +1,4 @@
-.Dd July 3, 2017
+.Dd July 14, 2017
 .Dt XE 1
 .Os
 .Sh NAME
@@ -105,7 +105,7 @@ Dry run: don't run the commands, just print them.
 Verbose: print commands to standard error before running them.
 When used twice, also print job id and exit status for each command.
 .It Fl I Ar arg
-Replace occurrences of
+Replace first occurrence of
 .Ar arg
 (default:
 .Cm {} )
@@ -115,7 +115,7 @@ Pass an empty
 to disable the replace function.
 Contrary to
 .Xr xargs 1
-this also works when multiple arguments are to be inserted.
+this will expand into multiple arguments when needed.
 .It Fl N Ar maxargs
 Pass up to
 .Ar maxargs
