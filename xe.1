@@ -3,11 +3,11 @@
 .Os
 .Sh NAME
 .Nm xe
-.Nd run command for each line or argument
+.Nd execute a command for every argument
 .Sh SYNOPSIS
 .Nm
 .Op Fl 0FLRnv
-.Op Fl I Ar arg
+.Op Fl I Ar replace-arg
 .Op Fl N Ar maxargs
 .Op Fl j Ar maxjobs
 .Ar command\ ...
@@ -24,9 +24,10 @@
 .Op Ar flags\ ...
 .Fl A Ar argsep Ar command\ ... Ar argsep Ar args\ ...
 .Sh DESCRIPTION
+The
 .Nm
-is a new tool for constructing command lines from file listings
-or arguments, which includes the best features of
+utility constructs command lines from specified arguments,
+combining some of the best features of
 .Xr xargs 1
 and
 .Xr apply 1 .
@@ -36,44 +37,59 @@ means
 .Dq execute for every ... .
 .Pp
 .Nm
-supports different ways to get arguments:
+supports different methods to specify arguments to commands:
 .Bl -tag -width Ds
 .It Ar command\ ...
-By default, arguments are read from standard input separated by newlines.
-The command is constructed by taking the command line parameters, replacing
-.Ar arg
-with the read argument and then using
-.Xr execvp 3
-to run the command.
+By default, arguments - separated by newlines -
+are read from the standard input.
+The resulting command is constructed from the command line parameters,
+replacing
+.Ar replace-arg
+with the read argument, and is executed with
+.Xr execvp 3 .
 In this mode, no shell is involved and
-.Ar arg
-must appears as its own word.
+.Ar replace-arg
+must appear as a word on its own, i.e.
+.Sq foo {} bar
+will work, but
+.Sq foo{} bar
+will not, where {} is the default value for
+.Ar replace-arg .
 .Pp
-If no argument is passed, default is
+If no argument is specified, the default is
 .Sq Ic printf %s\en .
 .It Fl f Ar argfile
-Like previous,
-but read arguments from
-.Ar argfile
-instead of standard input.
+Read arguments from
+.Ar argfile ,
+instead of the standard input.
 .Pp
-This will not close standard input for execution.
+This does not close the standard input for execution,
+it is passed to the forked process.
 .It Fl s Ar shellscript
-In this mode, the single argument
+In this mode, the single parameter
 .Ar shellscript
 is executed using
 .Ic sh -c .
-In the script, the passed arguments can be accessed using $1, $2, ...
+In the script, the specified arguments can be accessed using $1, $2, ...
+.Pp
+For example:
+.Dl echo Do a\enb Dc | xe -N2 -s So echo $2 $1 Sc
 .It Fl a Ar command\ ... Cm -- Ar args\ ...
-In this mode, all arguments after
+In this mode, everything after
 .Cm --
-are passed as arguments to the command.
+is passed as
+.Ar args
+to
+.Ar command.
 .It Fl A Ar argsep Ar command\ ... Ar argsep Ar args\ ...
 Same as
 .Fl a ,
-but a custom argument separator
+but the custom argument separator
 .Ar argsep
-is used to distinguish between command and arguments.
+is used to distinguish between
+.Ar command
+and its
+.Ar args .
 .El
 .Pp
 The options are as follows:
@@ -83,35 +99,37 @@ Input filenames are separated by NUL bytes (instead of newlines, which
 is the default)
 .It Fl F
 Fatal:
-stop and exit when a command execution failed.
+stop and exit when a command execution fails.
 .It Fl L
-Run the commands with line-buffered output;
+Run the resulting commands with line-buffered output;
 lines from two jobs will not interleave.
 When used twice,
 or with
 .Fl vv ,
-also prefix each line with the job id
+also prefix each line with the number of the job
+(see
+.Sx ENVIRONMENT )
 in such a manner that the output can be piped to
 .Sq Li sort -snk1
-to group it by job.
+to group it.
 .It Fl R
-Return with status 122 when no arguments have been passed
+Return with status 122 when no arguments have been specified
 (instead of 0, the default).
 .Nm
-never executes a command when no arguments are passed.
+never executes a command when no arguments are specified.
 .It Fl n
-Dry run: don't run the commands, just print them.
+Dry run: don't run the resulting commands, just print them.
 .It Fl v
 Verbose: print commands to standard error before running them.
 When used twice, also print job id and exit status for each command.
-.It Fl I Ar arg
+.It Fl I Ar replace-arg
 Replace first occurrence of
-.Ar arg
+.Ar replace-arg
 (default:
 .Cm {} )
-in the command with the argument(s).
+in the resulting command with the argument(s).
 Pass an empty
-.Ar arg
+.Ar replace-arg
 to disable the replace function.
 Contrary to
 .Xr xargs 1
@@ -135,16 +153,16 @@ If
 .Ar maxjobs
 ends with an
 .Sq Ic x ,
-it is regarded as a multiplier on the number of running CPU cores
+it is regarded as a multiplier of the number of running CPU cores
 (rounded down, but using at least one core).
 .El
 .Sh ENVIRONMENT
 The environment variable
 .Ev ITER
-is passed to the child process and incremented on every command execution.
+is passed to the child process and incremented on each command execution.
 .Sh EXIT STATUS
 .Nm
-uses the convention of GNU and OpenBSD xargs:
+follows the convention of GNU and OpenBSD xargs:
 .Bl -tag -compact -width Ds
 .It 0
 on success
@@ -164,7 +182,7 @@ if some other error occurred
 .Pp
 Additionally, 122 is returned when
 .Fl R
-was passed and the command never was executed.
+was passed and the command was never executed.
 .Sh SEE ALSO
 .Xr apply 1 ,
 .Xr parallel 1 ,
