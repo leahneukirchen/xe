@@ -49,16 +49,21 @@ with the read argument, and is executed with
 .Xr execvp 3 .
 In this mode, no shell is involved and
 .Ar arg
-must appear as its own word.
+must appear as a word on its own, i.e.
+.Sq foo {} bar
+will work, but
+.Sq foo{} bar
+will not.
 .Pp
 If no argument is specified, the default is
 .Sq Ic printf %s\en .
 .It Fl f Ar argfile
 Read arguments from
-.Ar argfile
+.Ar argfile ,
 instead of the standard input.
 .Pp
-This will not close the standard input for execution.
+This does not close the standard input for execution,
+it is passed to the forked process.
 .It Fl s Ar shellscript
 In this mode, the single parameter
 .Ar shellscript
@@ -100,10 +105,12 @@ lines from two jobs will not interleave.
 When used twice,
 or with
 .Fl vv ,
-also prefix each line with the job id
+also prefix each line with the number of the job
+(see
+.Sx ENVIRONMENT )
 in such a manner that the output can be piped to
 .Sq Li sort -snk1
-to group it by job.
+to group it.
 .It Fl R
 Return with status 122 when no arguments have been specified
 (instead of 0, the default).
