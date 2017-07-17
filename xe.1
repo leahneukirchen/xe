@@ -7,7 +7,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl 0FLRnv
-.Op Fl I Ar arg
+.Op Fl I Ar replace-arg
 .Op Fl N Ar maxargs
 .Op Fl j Ar maxjobs
 .Ar command\ ...
@@ -44,16 +44,17 @@ By default, arguments - separated by newlines -
 are read from the standard input.
 The resulting command is constructed from the command line parameters,
 replacing
-.Ar arg
+.Ar replace-arg
 with the read argument, and is executed with
 .Xr execvp 3 .
 In this mode, no shell is involved and
-.Ar arg
+.Ar replace-arg
 must appear as a word on its own, i.e.
 .Sq foo {} bar
 will work, but
 .Sq foo{} bar
-will not.
+will not, where {} is the default value for
+.Ar replace-arg .
 .Pp
 If no argument is specified, the default is
 .Sq Ic printf %s\en .
@@ -121,9 +122,9 @@ Dry run: don't run the resulting commands, just print them.
 .It Fl v
 Verbose: print commands to standard error before running them.
 When used twice, also print job id and exit status for each command.
-.It Fl I Ar arg
+.It Fl I Ar replace-arg
 Replace occurrences of
-.Ar arg
+.Ar replace-arg
 (default:
 .Cm {} )
 in the resulting command with the argument(s).
