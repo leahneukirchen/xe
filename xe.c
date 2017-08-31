@@ -11,13 +11,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#include <limits.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 static char delim = '\n';
 static char default_replace[] = "{}";
@@ -91,7 +91,7 @@ mywait()
 		if (errno == ECHILD)
 			return 0;
 		// no other error possible?
-	}	
+	}
 
 	int i;
 	for (i = 0; i < maxjobs; i++)
@@ -265,7 +265,7 @@ run()
 		if (lpid == 0) {  // in line-logging child
 			char *line = 0;
 			size_t linelen = 0;
-		
+
 			close(0);
 			close(pipefd[1]);
 			FILE *input = fdopen(pipefd[0], "r");
@@ -372,7 +372,7 @@ main(int argc, char *argv[], char *envp[])
 
 	argmax = sysconf(_SC_ARG_MAX);
 	while (*envp)  // subtract size of environment
-		argmax -= strlen(*envp++) + 1 + sizeof(*envp);
+		argmax -= strlen(*envp++) + 1 + sizeof *envp;
 	argmax -= 4 * 1024;  // subtract 4k for safety
 	if (argmax > 128 * 1024)  // upper bound
 		argmax = 128 * 1024;
@@ -382,7 +382,7 @@ main(int argc, char *argv[], char *envp[])
 	traceout = stdout;
 
 	while ((c = getopt(argc, argv, "+0A:FI:LN:Raf:j:ns:v")) != -1)
-		switch(c) {
+		switch (c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; Aflag++; break;
 		case 'I': replace = optarg; break;
@@ -397,7 +397,7 @@ main(int argc, char *argv[], char *envp[])
 		case 's': sflag = optarg; break;
 		case 'v': vflag++; traceout = stderr; break;
 		default:
-			fprintf(stderr, 
+			fprintf(stderr,
 			    "Usage: %s [-0FLRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
 			    "     | -f ARGFILE COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
