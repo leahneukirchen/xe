@@ -409,10 +409,10 @@ perc_subst(char *pat, char *base, char *arg)
 
 		    (int)(t - arg),
 		    arg,
-				    
+
 		    (int)(strlen(base) - (pat + strlen(pat) - (s + 1))),
 		    base + (s - pat),
-				    
+
 		    (int)(arg + strlen(arg) - t),
 		    t+1);
 	else
@@ -422,12 +422,12 @@ perc_subst(char *pat, char *base, char *arg)
 
 		    (int)(t - arg),
 		    arg,
-			    
+
 		    base,
-  
+
 		    (int)(arg + strlen(arg) - t),
 		    t+1);
-	
+
 	if (l >= sizeof buf) {
 		fprintf(stderr, "xe: result of percent subsitution too long\n");
 		exit(1);
