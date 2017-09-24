@@ -73,14 +73,14 @@ is executed using
 In the script, the specified arguments can be accessed using $1, $2, ...
 .Pp
 For example:
-.Dl echo Do a\enb Dc | xe -N2 -s So echo $2 $1 Sc
+.Dl echo \(aqa\enb\(aq | xe -N2 \-s \(aqecho $2 $1\(aq
 .It Fl a Ar command\ ... Cm -- Ar args\ ...
 In this mode, everything after
 .Cm --
 is passed as
 .Ar args
 to
-.Ar command.
+.Ar command .
 .It Fl A Ar argsep Ar command\ ... Ar argsep Ar args\ ...
 Same as
 .Fl a ,
