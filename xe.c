@@ -30,7 +30,7 @@ static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
 static int failed = 0;
-static int Aflag, Fflag, Lflag, Rflag, aflag, nflag, vflag;
+static int Aflag, Fflag, Lflag, Rflag, aflag, nflag, pflag, vflag;
 static long iterations = 0;
 static FILE *traceout;
 static FILE *input;
@@ -252,6 +252,10 @@ run()
 			close(pipefd[1]);
 		}
 
+		if (!args[0]) {
+			fprintf(stderr, "xe: no command\n");
+			exit(126);
+		}
 		execvp(args[0], args);
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(errno == ENOENT ? 127 : 126);
@@ -356,6 +360,63 @@ parse_jobs(char *s)
 }
 
 int
+perc_match(char *pat, char *arg)
+{
+	char *s = strchr(pat, '%');
+
+	if (!s)
+		return strcmp(arg, pat) == 0;
+
+	size_t la = strlen(arg);
+	size_t lp = strlen(pat);
+
+	return la >= lp &&
+	    strncmp(arg, pat, s - pat) == 0 &&
+	    strncmp(arg + la - (pat + lp - (s + 1)),
+		s + 1,
+		pat + lp - (s + 1)) == 0;
+}
+
+char *
+perc_subst(char *pat, char *base, char *arg)
+{
+	static char buf[2048];
+	size_t l;
+	char *s = strchr(pat, '%');
+	char *t = strchr(arg, '%');
+
+	if (!t)
+		return arg;
+
+	if (s)
+		l = snprintf(buf, sizeof buf, "%.*s%.*s%.*s",
+		    (int)(t - arg),
+		    arg,
+				    
+		    (int)(strlen(base) - (pat + strlen(pat) - (s + 1))),
+		    base + (s - pat),
+				    
+		    (int)(arg + strlen(arg) - t),
+		    t+1);
+	else
+		l = snprintf(buf, sizeof buf, "%.*s%s%.*s",
+		    (int)(t - arg),
+		    arg,
+			    
+		    base,
+  
+		    (int)(arg + strlen(arg) - t),
+		    t+1);
+	
+	if (l >= sizeof buf) {
+		fprintf(stderr, "xe: result of percent subsitution too long\n");
+		exit(1);
+	}
+
+	return buf;
+}
+
+int
 main(int argc, char *argv[], char *envp[])
 {
 	int c, i, j, cmdend;
@@ -381,7 +442,7 @@ main(int argc, char *argv[], char *envp[])
 
 	traceout = stdout;
 
-	while ((c = getopt(argc, argv, "+0A:FI:LN:Raf:j:ns:v")) != -1)
+	while ((c = getopt(argc, argv, "+0A:FI:LN:Raf:j:nps:v")) != -1)
 		switch (c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; Aflag++; break;
@@ -394,11 +455,12 @@ main(int argc, char *argv[], char *envp[])
 		case 'f': fflag = optarg; break;
 		case 'j': maxjobs = parse_jobs(optarg); break;
 		case 'n': nflag++; break;
+		case 'p': pflag++; break;
 		case 's': sflag = optarg; break;
 		case 'v': vflag++; traceout = stderr; break;
 		default:
 			fprintf(stderr,
-			    "Usage: %s [-0FLRnv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "Usage: %s [-0FLRnv] [-p | -I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
 			    "     | -f ARGFILE COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"
@@ -453,6 +515,49 @@ main(int argc, char *argv[], char *envp[])
 			    "'%s' found in command line.\n", argsep, argsep);
 			exit(1);
 		}
+	}
+
+	if (pflag) {
+		if (maxatonce != 1 || replace != default_replace) {
+			fprintf(stderr,
+			    "xe: -p cannot be used together with -N or -I.\n");
+			exit(1);
+		}
+
+		while ((arg = getarg())) {
+			buflen = 0;
+			argslen = 0;
+
+			int n;
+			for (n = optind, i = n + 1; n < cmdend; n = i + 1) {
+				char *pat = argv[n];
+
+				int matched = perc_match(pat, arg);
+
+				for (i = n + 1; i < cmdend; i++) {
+					if (argv[i][0] == '+' &&
+					    argv[i][1] == '\0')
+						break;
+
+					if (sflag) {
+						pusharg("/bin/sh");
+						pusharg("-c");
+						pusharg(sflag);
+						pusharg("-");
+					}
+
+					if (matched &&
+					    !pusharg(perc_subst(pat, arg, argv[i])))
+						toolong();
+				}
+
+				if (matched) {
+					run();
+					break;
+				}
+			}
+		}
+		// done with args, so default execution will do nothing
 	}
 
 	int keeparg = 0;

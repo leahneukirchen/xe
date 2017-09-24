@@ -7,7 +7,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl 0FLRnv
-.Op Fl I Ar replace-arg
+.Oo Fl p | Fl I Ar replace-arg Oc
 .Op Fl N Ar maxargs
 .Op Fl j Ar maxjobs
 .Ar command\ ...
@@ -45,8 +45,12 @@ are read from the standard input.
 The resulting command is constructed from the command line parameters,
 replacing
 .Ar replace-arg
+(unless
+.Fl p
+is used, see below)
 with the read argument, and is executed with
 .Xr execvp 3 .
+.Pp
 In this mode, no shell is involved and
 .Ar replace-arg
 must appear as a word on its own, i.e.
@@ -122,6 +126,29 @@ Dry run: don't run the resulting commands, just print them.
 .It Fl v
 Verbose: print commands to standard error before running them.
 When used twice, also print job id and exit status for each command.
+.It Fl p
+Enable
+.Em percent rules :
+this mode disables the default
+.Ar replace-arg
+substition and enables
+.Xr make 1 Ns \&- Ns
+style percent rules.
+The first argument of
+.Ar command\ ...
+is regarded as a pattern:
+in the pattern, a single occurrence of
+.Li Sq \&%
+matches one or more characters,
+and replaces the first occurrence of
+.Li Sq \&%
+with the matched string in the remaining arguments,
+which are then used as the command to be executed.
+.Pp
+Multiple runs of patterns and commands are separated by
+.Li Sq \&+ .
+Only the first matching percent rule is executed;
+when no pattern matches, no command is run.
 .It Fl I Ar replace-arg
 Replace first occurrence of
 .Ar replace-arg
