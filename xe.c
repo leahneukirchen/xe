@@ -362,6 +362,12 @@ parse_jobs(char *s)
 int
 perc_match(char *pat, char *arg)
 {
+	if (!strchr(pat, '/')) {
+		char *d = strrchr(arg, '/');
+		if (d)
+			arg = d + 1;
+	}
+
 	char *s = strchr(pat, '%');
 
 	if (!s)
@@ -382,6 +388,14 @@ perc_subst(char *pat, char *base, char *arg)
 {
 	static char buf[2048];
 	size_t l;
+	char *dir = base;
+
+	if (!strchr(pat, '/')) {
+		char *d = strrchr(base, '/');
+		if (d)
+			base = d + 1;
+	}
+
 	char *s = strchr(pat, '%');
 	char *t = strchr(arg, '%');
 
@@ -389,7 +403,10 @@ perc_subst(char *pat, char *base, char *arg)
 		return arg;
 
 	if (s)
-		l = snprintf(buf, sizeof buf, "%.*s%.*s%.*s",
+		l = snprintf(buf, sizeof buf, "%.*s%.*s%.*s%.*s",
+		    (int)(base - dir),
+		    dir,
+
 		    (int)(t - arg),
 		    arg,
 				    
@@ -399,7 +416,10 @@ perc_subst(char *pat, char *base, char *arg)
 		    (int)(arg + strlen(arg) - t),
 		    t+1);
 	else
-		l = snprintf(buf, sizeof buf, "%.*s%s%.*s",
+		l = snprintf(buf, sizeof buf, "%.*s%.*s%s%.*s",
+		    (int)(base - dir),
+		    dir,
+
 		    (int)(t - arg),
 		    arg,
 			    
