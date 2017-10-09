@@ -560,6 +560,18 @@ perc_subst(char *pat, char *base, char *arg)
 	return buf;
 }
 
+static void
+trace_to_stderr()
+{
+	FILE *linestderr = fdopen(2, "w");
+	if (linestderr) {
+		setvbuf(linestderr, 0, _IOLBF, 0);
+		traceout = linestderr;
+	} else {
+		traceout = stderr;
+	}
+}
+
 int
 main(int argc, char *argv[], char *envp[])
 {
@@ -602,7 +614,7 @@ main(int argc, char *argv[], char *envp[])
 		case 'p': pflag++; break;
 		case 'q': qflag++; break;
 		case 's': sflag = optarg; break;
-		case 'v': vflag++; traceout = stderr; break;
+		case 'v': vflag++; break;
 		default:
 			fprintf(stderr,
 			    "Usage: %s [-0FLRnqv] [-p | -I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
@@ -618,8 +630,8 @@ main(int argc, char *argv[], char *envp[])
 	if (!children)
 		exit(1);
 
-	if (Lflag && vflag > 1)
-		traceout = stdout;
+	if (!Lflag || vflag <= 1)
+		trace_to_stderr();
 
 	if (aflag || Aflag) {
 		input = 0;
