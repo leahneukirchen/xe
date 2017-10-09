@@ -359,6 +359,123 @@ parse_jobs(char *s)
 	return n;
 }
 
+// perc is a variant of fnmatch, implemented here using left derivatives:
+//
+// differences to fnmatch:
+// ** matches any substring
+// % matches any nonempty substring (longest first), is kept for substitution
+// [!...] and [^...] are supported
+// [] matches nothing
+// [...] never matches /
+// {a,b,c} alternation
+// {} matches empty string
+// no special prefix . handling: *le matches .profile
+// no collations in []
+
+size_t perc_len;
+char *perc_str;
+
+char *
+perc(char *pat, char *str, int lvl)
+{
+	char *s, *e;
+	int neg, matched;
+	size_t l;
+
+	switch (*pat) {
+	case '\0':
+		if (lvl > 0) {
+			fprintf(stderr, "xe: unmatched { in glob\n");
+			exit(1);
+		}
+		return *str ? 0 : str;
+	case '?':
+		if (!*str || *str == '/')
+			return 0;
+		return perc(pat+1, str+1, lvl);
+	case '*':
+		pat++;
+		if (*pat == '*') {  // any substring
+			while (*pat == '*')
+				pat++;
+			l = strlen(str) + 1;
+		} else {  // any substring but no more than the next /
+			if ((e = strchr(str, '/')))
+				l = e - str + 1;
+			else
+				l = strlen(str) + 1;
+		}
+		while (l--)
+			if ((s = perc(pat, str+l, lvl)))
+				return s;
+		return 0;
+	case '%':
+		// any nonempty substring
+		for (l = strlen(str) + 1; l >= 1; l--)
+			if ((s = perc(pat+1, str+l, lvl))) {
+				perc_str = str;
+				perc_len = l;
+				return s;
+			}
+		return 0;
+	case '[':
+		if (!*str || *str == '/')
+			return 0;
+		pat++;
+		neg = 0;
+		if (*pat == '^' || *pat == '!') {
+			pat++;
+			neg = 1;
+		}
+		for (matched = 0; *pat && *pat != ']'; pat++) {
+			if (pat[1] == '-' && pat[2] != ']') {
+				if (pat[0] <= *str && *str <= pat[2])
+					matched = 1;
+				pat += 2;
+			} else if (*str == *pat) {
+				matched = 1;
+			}
+		}
+		if (*pat != ']') {
+			fprintf(stderr, "xe: unmatched [ in glob\n");
+			exit(1);
+		}
+		return (neg ^ matched) ? perc(pat+1, str+1, lvl) : 0;
+	case '{':
+		e = 0;
+		while (*pat++ != '}') {
+			if (!e)
+				e = perc(pat, str, lvl+1);
+			for (l = 0;
+			     *pat && !(l == 0 && (*pat == ',' || *pat == '}'));
+			     pat++)
+				if (*pat == '{')
+					l++;
+				else if (*pat == '}')
+					l--;
+				else if (*pat == '[')
+					while (*pat && *pat != ']')
+						pat++;
+		}
+		return e ? perc(pat, e, lvl) : 0;
+	case '/':
+		if (*str != '/')
+			return 0;
+		while (*pat == '/')
+			pat++;
+		while (*str == '/')
+			str++;
+		return perc(pat, str, lvl);
+	case ',':
+	case '}':
+		if (lvl > 0)
+			return str;
+		/* FALL THROUGH */
+	default:
+		return (*pat == *str) ? perc(pat+1, str+1, lvl) : 0;
+	}
+}
+
 int
 perc_match(char *pat, char *arg)
 {
@@ -368,19 +485,10 @@ perc_match(char *pat, char *arg)
 			arg = d + 1;
 	}
 
-	char *s = strchr(pat, '%');
+	perc_len = 0;
+	perc_str = 0;
 
-	if (!s)
-		return strcmp(arg, pat) == 0;
-
-	size_t la = strlen(arg);
-	size_t lp = strlen(pat);
-
-	return la >= lp &&
-	    strncmp(arg, pat, s - pat) == 0 &&
-	    strncmp(arg + la - (pat + lp - (s + 1)),
-		s + 1,
-		pat + lp - (s + 1)) == 0;
+	return perc(pat, arg, 0) != 0;
 }
 
 char *
@@ -390,19 +498,21 @@ perc_subst(char *pat, char *base, char *arg)
 	size_t l;
 	char *dir = base;
 
+	if (arg[0] == '@' && !arg[1])
+		return base;
+
 	if (!strchr(pat, '/')) {
 		char *d = strrchr(base, '/');
 		if (d)
 			base = d + 1;
 	}
 
-	char *s = strchr(pat, '%');
 	char *t = strchr(arg, '%');
 
 	if (!t)
 		return arg;
 
-	if (s)
+	if (perc_len)
 		l = snprintf(buf, sizeof buf, "%.*s%.*s%.*s%.*s",
 		    (int)(base - dir),
 		    dir,
@@ -410,8 +520,8 @@ perc_subst(char *pat, char *base, char *arg)
 		    (int)(t - arg),
 		    arg,
 
-		    (int)(strlen(base) - (pat + strlen(pat) - (s + 1))),
-		    base + (s - pat),
+		    (int)perc_len,
+		    perc_str,
 
 		    (int)(arg + strlen(arg) - t),
 		    t+1);
