@@ -393,6 +393,14 @@ perc(char *pat, char *str, int lvl)
 		if (!*str || *str == '/')
 			return 0;
 		return perc(pat+1, str+1, lvl);
+	case '/':
+		if (*str != '/')
+			return 0;
+		while (*pat == '/')
+			pat++;
+		while (*str == '/')
+			str++;
+		return perc(pat, str, lvl);
 	case '*':
 		pat++;
 		if (*pat == '*') {  // any substring
@@ -446,6 +454,7 @@ perc(char *pat, char *str, int lvl)
 		while (*pat++ != '}') {
 			if (!e)
 				e = perc(pat, str, lvl+1);
+			// skip to next , or }
 			for (l = 0;
 			     *pat && !(l == 0 && (*pat == ',' || *pat == '}'));
 			     pat++)
@@ -458,14 +467,6 @@ perc(char *pat, char *str, int lvl)
 						pat++;
 		}
 		return e ? perc(pat, e, lvl) : 0;
-	case '/':
-		if (*str != '/')
-			return 0;
-		while (*pat == '/')
-			pat++;
-		while (*str == '/')
-			str++;
-		return perc(pat, str, lvl);
 	case ',':
 	case '}':
 		if (lvl > 0)
