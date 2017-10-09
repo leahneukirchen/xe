@@ -260,6 +260,18 @@ if some other error occurred
 Additionally, 122 is returned when
 .Fl R
 was passed and the command was never executed.
+.Sh EXAMPLES
+Compress all .c files in the current directory, using all CPU cores:
+.Dl xe -a -j0 gzip -- *.c
+Remove all empty files, using
+.Xr lr 1 :
+.Dl lr -U -t 'size == 0' | xe -N0 rm
+Convert .mp3 to .ogg, using all CPU cores:
+.Dl xe -a -j0 -s 'ffmpeg -i \&"${1}\&" \&"${1%.mp3}.ogg\&"' -- *.mp3
+Same, using percent rules:
+.Dl xe -a -j0 -p %.mp3 ffmpeg -i %.mp3 %.ogg -- *.mp3
+Similar, but hiding output of ffmpeg, instead showing spawned jobs:
+.Dl xe -ap -j0 -vvq '%.{m4a,ogg,opus}' ffmpeg -y -i {} out/%.mp3 -- *
 .Sh SEE ALSO
 .Xr apply 1 ,
 .Xr parallel 1 ,
