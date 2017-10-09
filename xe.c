@@ -30,7 +30,7 @@ static int maxatonce = 1;
 static int maxjobs = 1;
 static int runjobs = 0;
 static int failed = 0;
-static int Aflag, Fflag, Lflag, Rflag, aflag, nflag, pflag, vflag;
+static int Aflag, Fflag, Lflag, Rflag, aflag, nflag, pflag, qflag, vflag;
 static long iterations = 0;
 static FILE *traceout;
 static FILE *input;
@@ -255,6 +255,14 @@ run()
 		if (!args[0]) {
 			fprintf(stderr, "xe: no command\n");
 			exit(126);
+		}
+		if (qflag) {
+			int fd = open("/dev/null", O_RDONLY);
+			if (fd >= 0) {
+				dup2(fd, 2);
+				dup2(fd, 1);
+				close(fd);
+			}
 		}
 		execvp(args[0], args);
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
@@ -578,7 +586,7 @@ main(int argc, char *argv[], char *envp[])
 
 	traceout = stdout;
 
-	while ((c = getopt(argc, argv, "+0A:FI:LN:Raf:j:nps:v")) != -1)
+	while ((c = getopt(argc, argv, "+0A:FI:LN:Raf:j:npqs:v")) != -1)
 		switch (c) {
 		case '0': delim = '\0'; break;
 		case 'A': argsep = optarg; Aflag++; break;
@@ -592,11 +600,12 @@ main(int argc, char *argv[], char *envp[])
 		case 'j': maxjobs = parse_jobs(optarg); break;
 		case 'n': nflag++; break;
 		case 'p': pflag++; break;
+		case 'q': qflag++; break;
 		case 's': sflag = optarg; break;
 		case 'v': vflag++; traceout = stderr; break;
 		default:
 			fprintf(stderr,
-			    "Usage: %s [-0FLRnv] [-p | -I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "Usage: %s [-0FLRnqv] [-p | -I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
 			    "     | -f ARGFILE COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"

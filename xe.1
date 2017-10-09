@@ -6,7 +6,7 @@
 .Nd execute a command for every argument
 .Sh SYNOPSIS
 .Nm
-.Op Fl 0FLRnv
+.Op Fl 0FLRnqv
 .Oo Fl p | Fl I Ar replace-arg Oc
 .Op Fl N Ar maxargs
 .Op Fl j Ar maxjobs
@@ -123,6 +123,9 @@ Return with status 122 when no arguments have been specified
 never executes a command when no arguments are specified.
 .It Fl n
 Dry run: don't run the resulting commands, just print them.
+.It Fl q
+Quiet mode:
+redirect standard output and standard error of commands to /dev/null.
 .It Fl v
 Verbose: print commands to standard error before running them.
 When used twice, also print job id and exit status for each command.
