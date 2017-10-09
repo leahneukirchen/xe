@@ -504,7 +504,7 @@ perc_subst(char *pat, char *base, char *arg)
 	size_t l;
 	char *dir = base;
 
-	if (arg[0] == '@' && !arg[1])
+	if (strcmp(arg, replace) == 0)
 		return base;
 
 	if (!strchr(pat, '/')) {
@@ -654,9 +654,9 @@ main(int argc, char *argv[], char *envp[])
 	}
 
 	if (pflag) {
-		if (maxatonce != 1 || replace != default_replace) {
+		if (maxatonce != 1) {
 			fprintf(stderr,
-			    "xe: -p cannot be used together with -N or -I.\n");
+			    "xe: -p cannot be used together with -N.\n");
 			exit(1);
 		}
 
