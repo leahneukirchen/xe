@@ -436,6 +436,8 @@ perc(char *pat, char *str, int lvl)
 			neg = 1;
 		}
 		for (matched = 0; *pat && *pat != ']'; pat++) {
+			if (*pat == '\\')
+				pat++;
 			if (pat[1] == '-' && pat[2] != ']') {
 				if (pat[0] <= *str && *str <= pat[2])
 					matched = 1;
@@ -463,8 +465,11 @@ perc(char *pat, char *str, int lvl)
 				else if (*pat == '}')
 					l--;
 				else if (*pat == '[')
-					while (*pat && *pat != ']')
+					while (*pat && *pat != ']') {
+						if (*pat == '\\' && pat[1])
+							pat++;
 						pat++;
+					}
 		}
 		return e ? perc(pat, e, lvl) : 0;
 	case ',':
