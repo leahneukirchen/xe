@@ -127,23 +127,15 @@ Dry run: don't run the resulting commands, just print them.
 Verbose: print commands to standard error before running them.
 When used twice, also print job id and exit status for each command.
 .It Fl p
-Enable
-.Em percent rules :
-this mode disables the default
-.Ar replace-arg
-substition and enables
+This mode enables
 .Xr make 1 Ns \&- Ns
 style percent rules.
 The first argument of
 .Ar command\ ...
-is regarded as a pattern:
-in the pattern, a single occurrence of
-.Li Sq \&%
-matches one or more characters,
-and replaces the first occurrence of
-.Li Sq \&%
-with the matched string in the remaining arguments,
-which are then used as the command to be executed.
+is regarded as a pattern,
+see
+.Sx PERCENT RULES
+below.
 Patterns without a slash are matched against the basenames only.
 .Pp
 Multiple runs of patterns and commands are separated by
@@ -184,6 +176,60 @@ ends with an
 it is regarded as a multiplier of the number of running CPU cores
 (rounded down, but using at least one core).
 .El
+.Sh PERCENT RULES
+The percent rules of
+.Nm
+are similar to the globs
+of
+.Xr sh 1
+or
+.Xr fnmatch 3 :
+.Sq Li \&?
+matches a single character that is not
+.Sq Li \&/ .
+.Sq Li \&/
+matches one or multiple
+.Sq Li \&/
+in the string.
+.Sq Li \&*
+matches zero or more characters, but never
+.Sq Li \&/ .
+.Sq Li \&*\&*
+matches zero or more characters, including
+.Sq Li \&/ .
+Note that all of these also match leading dots in file names.
+.Pp
+.Sq Li \&{ Ns Va a Ns \&, Ns Va b Ns \&, Ns Va c Ns \&}
+matches either
+.Va a , b
+or
+.Va c .
+.Sq Li \&[ Ns Va abc Ns \&]
+matches one of the characters
+.Va abc
+(but never
+.Sq Li \&/ ) .
+.Sq Li \&[ Ns \&! Ns Va abc Ns \&]
+matches all characters but
+.Va abc .
+Alternatively,
+.Sq Li \&[ Ns \&^ Ns Va abc Ns \&]
+can be used too.
+.Sq Li \&[ Ns Va a Ns \&- Ns Va c Ns \&]
+matches any character in the range between
+.Va a
+and
+.Va c
+inclusive.
+In character ranges, characters can be escaped using a backslash.
+.Pp
+In the pattern, a single occurrence of
+.Li Sq \&%
+matches one or more characters,
+and replaces the first occurrence of
+.Li Sq \&%
+with the matched string in the remaining arguments,
+which are then used as the command to be executed.
 .Sh ENVIRONMENT
 The environment variable
 .Ev ITER
