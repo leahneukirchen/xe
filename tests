@@ -193,7 +193,7 @@ check_output 'using -LL' '{ echo 1; sleep 1; echo 2; sleep 1; echo 3; } | xe -j2
 0003= 33
 EOF
 
-check_output 'using -vvL' '{ echo 1; sleep 1; echo 2; sleep 1; echo 3; } | xe -j2 -vvL -s "printf \$1; sleep 1; echo \$1" | wc -l' <<EOF
+check_output 'using -vvL' '{ echo 1; sleep 1; echo 2; sleep 1; echo 3; } | xe -j2 -vvL -s "printf %s \$1; sleep 1; echo \$1" | wc -l | tr -d " "' <<EOF
 9
 EOF
 
@@ -265,7 +265,7 @@ EOF
 
 printf '# limit checks, expecting maximal POSIX limits available\n'
 
-check_output 'argscap check' 'head -c 17711 /dev/zero | tr "\0" "\012" | xe -N0 -s "echo \$#"' <<EOF
+check_output 'argscap check' 'dd if=/dev/zero bs=1 count=17711 2>/dev/null | tr "\0" "\012" | xe -N0 -s "echo \$#"' <<EOF
 8187
 8187
 1337
@@ -347,7 +347,7 @@ check_output '[] ranges' 'xe -ap "[abc]" echo "1%" + "[d-g]" echo "2%" + "[^xyz-
 5-
 EOF
 
-check_output '{} alternation' 'xe -ap {a,bc,def*} echo % -- x a abc bc bcd def defx xdef' <<EOF
+check_output '{} alternation' 'xe -ap "{a,bc,def*}" echo % -- x a abc bc bcd def defx xdef' <<EOF
 a
 bc
 def
