@@ -215,7 +215,7 @@ check_output 'exit code on when command fails with 255' 'necho a | xe -s "exit 2
 124
 EOF
 
-check_output 'exit code when process was killed' 'necho a | xe -s "kill -HUP \$\$" 2>/dev/null || echo $?' <<EOF
+check_output 'exit code when process was killed' 'necho a | xe -s "exec /bin/kill -HUP \$\$" 2>/dev/null || echo $?' <<EOF
 125
 EOF
 
