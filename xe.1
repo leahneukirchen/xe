@@ -130,7 +130,7 @@ redirect standard output and standard error of commands to /dev/null.
 Verbose: print commands to standard error before running them.
 When used twice, also print job id and exit status for each command.
 .It Fl p
-This mode enables
+Enable
 .Xr make 1 Ns \&- Ns
 style percent rules.
 The first argument of
@@ -144,7 +144,7 @@ Patterns without a slash are matched against the basenames only.
 Multiple runs of patterns and commands are separated by
 .Sq Li \&+ .
 Only the first matching percent rule is executed;
-when no pattern matches, no command is run.
+in case no pattern matches, no command is run.
 .It Fl I Ar replace-arg
 Replace first occurrence of
 .Ar replace-arg
