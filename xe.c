@@ -427,7 +427,7 @@ perc(char *pat, char *str, int lvl)
 		return 0;
 	case '%':
 		// any nonempty substring
-		for (l = strlen(str) + 1; l >= 1; l--)
+		for (l = strlen(str); l >= 1; l--)
 			if ((s = perc(pat+1, str+l, lvl))) {
 				perc_str = str;
 				perc_len = l;
