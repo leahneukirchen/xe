@@ -20,4 +20,7 @@ install: FRC all
 	install -m0755 $(ALL) $(DESTDIR)$(BINDIR)
 	install -m0644 $(ALL:=.1) $(DESTDIR)$(MANDIR)/man1
 
+README: xe.1
+	mandoc -Tutf8 $< | col -bx >$@
+
 FRC:
