@@ -493,7 +493,7 @@ perc(char *pat, char *str, int lvl)
 int
 perc_match(char *pat, char *arg)
 {
-	if (!strchr(pat, '/')) {
+	if (!strchr(pat, '/') && !strstr(pat, "**")) {
 		char *d = strrchr(arg, '/');
 		if (d)
 			arg = d + 1;
@@ -515,7 +515,7 @@ perc_subst(char *pat, char *base, char *arg)
 	if (strcmp(arg, replace) == 0)
 		return base;
 
-	if (!strchr(pat, '/')) {
+	if (!strchr(pat, '/') && !strstr(pat, "**")) {
 		char *d = strrchr(base, '/');
 		if (d)
 			base = d + 1;
