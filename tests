@@ -1,5 +1,5 @@
 #!/bin/sh
-printf '1..47\n'
+printf '1..60\n'
 
 set -e
 
@@ -276,4 +276,85 @@ check_output 'argslen check' 'bloat | xe -N0 -s "echo \$#"' <<EOF
 16
 16
 10
+EOF
+
+printf '# percent rules\n'
+
+check_output 'literal matches' 'xe -ap bcd echo found -- abc bcd defg' <<EOF
+found
+EOF
+
+check_output 'multiple patterns' 'xe -ap one echo 1 + two echo 2 + three echo 3 -- zero one two three four five' <<EOF
+1
+2
+3
+EOF
+
+check_output '{} expansion' 'xe -ap bcd echo {} -- abc bcd defg' <<EOF
+bcd
+EOF
+
+check_output '% expansion' 'xe -ap bcd echo % -- abc bcd defg' <<EOF
+bcd
+EOF
+
+check_output 'dirnames' 'xe -ap bcd echo % -- abc bcd /tmp/bcd /tmp/abc' <<EOF
+bcd
+/tmp/bcd
+EOF
+
+check_output '? glob' 'xe -ap "b?d" echo % -- abc bcd b3d defg' <<EOF
+bcd
+b3d
+EOF
+
+check_output '* glob' 'xe -ap "b*d" echo % -- bd bed bad bugged bx zbd b/d' <<EOF
+bd
+bed
+bad
+bugged
+EOF
+
+check_output 'multiple * glob' 'xe -ap "b*g*d" echo % -- bd bed bugged bx zbd bagdad badger ba/gd/ad' <<EOF
+bugged
+bagdad
+EOF
+
+check_output 'multiple ** glob' 'xe -ap "b**g**d" echo % -- bd bed bugged bx zbd bagdad badger ba/gd/ad' <<EOF
+bugged
+bagdad
+ba/gd/ad
+EOF
+
+check_output '/ slash' 'xe -ap a/b echo 1 + c///d echo 2 + "*" echo 3 -- a/b a//b a/ b c/d /c////d' <<EOF
+1
+1
+3
+3
+2
+3
+EOF
+
+check_output '[] ranges' 'xe -ap "[abc]" echo "1%" + "[d-g]" echo "2%" + "[^xyz-]" echo "3%" + "[!-vw]" echo "4%" + % echo "5%" -- a c d e g h w x -' <<EOF
+1a
+1c
+2d
+2e
+2g
+3h
+3w
+4x
+5-
+EOF
+
+check_output '{} alternation' 'xe -ap {a,bc,def*} echo % -- x a abc bc bcd def defx xdef' <<EOF
+a
+bc
+def
+defx
+EOF
+
+check_output '% match' 'xe -ap %.c echo obj/%.o -- foo.c bar.cc meh/quux.c' <<EOF
+obj/foo.o
+meh/obj/quux.o
 EOF
