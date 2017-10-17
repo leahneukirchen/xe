@@ -252,7 +252,7 @@ y
 y
 EOF
 
-check_output 'should not close stdin when arguments were read from file' 'yes | xe -f tests -s "sed q" | sed 3q' <<EOF
+check_output 'should not close stdin when arguments were read from file' 'yes | xe -f tests -s "sed q" 2>&1 | sed 3q' <<EOF
 y
 y
 y
