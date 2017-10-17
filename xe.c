@@ -700,7 +700,7 @@ main(int argc, char *argv[], char *envp[])
 						pusharg("/bin/sh");
 						pusharg("-c");
 						pusharg(sflag);
-						pusharg("-");
+						pusharg("/bin/sh");
 					}
 
 					if (matched &&
@@ -734,7 +734,7 @@ main(int argc, char *argv[], char *envp[])
 			pusharg("/bin/sh");
 			pusharg("-c");
 			pusharg(sflag);
-			pusharg("-");
+			pusharg("/bin/sh");
 		} else if (optind >= cmdend) {
 			pusharg("printf");
 			pusharg("%s\\n");
