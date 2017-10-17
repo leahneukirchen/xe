@@ -219,6 +219,7 @@ check_output 'exit code when process was killed' 'necho a | xe -s "exec /bin/kil
 125
 EOF
 
+# possible false positive result when exec returns ENOENT instead of ENOTDIR here
 check_output 'exit code when command cannot be run' 'necho a | xe /dev/null/calc.exe 2>/dev/null || echo $?' <<EOF
 126
 EOF
