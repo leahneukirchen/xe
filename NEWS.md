@@ -1,5 +1,12 @@
 ## HEAD
 
+## 0.10 (2017-10-30)
+
+* New flag `-p` to enable "percent rules" ala make(1), see the man
+  page for details.
+* New flag `-q` to run commands, hiding their output.
+* Fix issues launching commands on FreeBSD and DragonFlyBSD.
+
 ## 0.9 (2017-07-17)
 
 * New flag `-L` to enable line buffering on output.
