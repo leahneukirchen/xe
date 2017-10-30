@@ -80,7 +80,8 @@ DESCRIPTION
 
      -p      Enable make(1)-style percent rules.  The first argument of
              command ... is regarded as a pattern, see PERCENT RULES below.
-             Patterns without a slash are matched against the basenames only.
+             Patterns without a slash (or ‘**’) are matched against the
+             basenames only.
 
              Multiple runs of patterns and commands are separated by ‘+’.
              Only the first matching percent rule is executed; in case no
