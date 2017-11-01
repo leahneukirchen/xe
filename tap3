@@ -1,0 +1,105 @@
+#!/usr/bin/perl -w
+# tap3 [DESC] - check output/error/status of a command against a specification
+#
+# A tiny variant of shelltestrunner (format v1), just takes one test
+# case and outputs a TAP line.
+#
+# Input format:
+#
+# CMD
+# <<<
+# INPUT
+# >>>
+# OUTPUT
+# >>> /OUTPUT REGEX/
+# >>>2
+# STDERR
+# >>>2 /STDERR REGEX/
+# >>>= STATUS
+# >>>= !STATUS
+#
+# All but CMD are optional and can be put in any order,
+# By default, STATUS is set to 0 and STDERR assumed empty.
+#
+# To the extent possible under law, the creator of this work has waived
+# all copyright and related or neighboring rights to this work.
+# http://creativecommons.org/publicdomain/zero/1.0/
+
+use strict;
+use Symbol 'gensym';
+use IPC::Open3;
+
+my $cmd = "";
+my ($input, $output, $output_rx, $stderr, $stderr_rx, $status, $status_not);
+my $ignored = "";
+
+my $var = \$cmd;
+while (<STDIN>) {
+	if (/^#!? /) { next; }
+	if (/^<<<$/) { $var = \$input; $input = ""; next; }
+	if (/^>>>$/) { $var = \$output; $output = ""; next; }
+	if (/^>>>2$/) { $var = \$stderr; $stderr = ""; next; }
+	if (/^>>>\s*\/(.*)\/$/) { $output_rx = $1; next; }
+	if (/^>>>2\s*\/(.*)\/$/) { $stderr_rx = $1; next; }
+	if (/^>>>=\s+(\d+)$/) { $var = \$ignored; $status = $1; next; }
+	if (/^>>>=\s+!(\d+)$/) { $var = \$ignored; $status_not = $1; next; }
+	$$var .= $_;
+}
+
+chomp($cmd);
+die "No command to check given\n"  if !$cmd;
+
+my ($wtr, $rdr);
+my $err = gensym;
+my $pid = open3($wtr, $rdr, $err, "/bin/sh", "-c", $cmd);
+
+my $desc = shift || $cmd;
+
+print $wtr $input  if (defined($input));
+close $wtr;
+my $real_output = do { local $/; <$rdr>; };
+my $real_stderr = do { local $/; <$err>; };
+waitpid($pid, 0);
+my $real_status = $? >> 8;
+
+my $r = 0;
+
+sub not_ok {
+	print "not ok - $desc\n"  if (!$r);
+	$r = 1;
+	$_[0] =~ s/^/# /mg;
+	print $_[0];
+}
+
+if (defined($output) && $real_output ne $output) {
+	not_ok("wrong output:\n$real_output");
+}
+if (defined($output_rx) && $real_output !~ $output_rx) {
+	not_ok("output doesn't match /$output_rx/:\n$real_output\n");
+}
+if (defined($stderr) && $real_stderr ne $stderr) {
+	not_ok("wrong stderr:\n$real_stderr");
+}
+if (defined($stderr_rx) && $real_stderr !~ $stderr_rx) {
+	not_ok("stderr doesn't match /$stderr_rx/:\n$real_stderr\n");
+}
+if (!defined($stderr) && !defined($stderr_rx) && 
+    !defined($status) && !defined($status_not) &&
+    $real_stderr) {
+	not_ok("output to stderr:\n$real_stderr\n");
+}
+if (defined($status) && $real_status != $status) {
+	not_ok("wrong status: $real_status (expected $status)\n");
+}
+if (defined($status_not) && $real_status == $status_not) {
+	not_ok("wrong status: $real_status (expected anything else)\n");
+}
+if (!defined($status) && !defined($status_not) &&
+    !defined($stderr) && !defined($stderr_rx) &&
+    $real_status != 0) {
+	not_ok("wrong status: $real_status (command failed)\n");
+}
+
+print "ok - $desc\n"  if (!$r);
+
+exit $r;

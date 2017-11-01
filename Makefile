@@ -13,7 +13,7 @@ clean: FRC
 	rm -f $(ALL)
 
 check: FRC all
-	prove -v ./tests
+	prove -v
 
 install: FRC all
 	mkdir -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
