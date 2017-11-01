@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # tap3 [DESC] - check output/error/status of a command against a specification
 #
 # A tiny variant of shelltestrunner (format v1), just takes one test
@@ -26,6 +26,7 @@
 # http://creativecommons.org/publicdomain/zero/1.0/
 
 use strict;
+use warnings;
 use Symbol 'gensym';
 use IPC::Open3;
 
