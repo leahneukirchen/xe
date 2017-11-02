@@ -19,6 +19,7 @@
 # >>>= !STATUS
 #
 # All but CMD are optional and can be put in any order,
+# Regex variants can be repeated, all patterns must match.
 # By default, STATUS is set to 0 and STDERR assumed empty.
 #
 # To the extent possible under law, the creator of this work has waived
@@ -31,7 +32,7 @@ use Symbol 'gensym';
 use IPC::Open3;
 
 my $cmd = "";
-my ($input, $output, $output_rx, $stderr, $stderr_rx, $status, $status_not);
+my ($input, $output, @output_rx, $stderr, @stderr_rx, $status, $status_not);
 my $ignored = "";
 
 my $var = \$cmd;
@@ -40,8 +41,8 @@ while (<STDIN>) {
 	if (/^<<<$/) { $var = \$input; $input = ""; next; }
 	if (/^>>>$/) { $var = \$output; $output = ""; next; }
 	if (/^>>>2$/) { $var = \$stderr; $stderr = ""; next; }
-	if (/^>>>\s*\/(.*)\/$/) { $output_rx = $1; next; }
-	if (/^>>>2\s*\/(.*)\/$/) { $stderr_rx = $1; next; }
+	if (/^>>>\s*\/(.*)\/$/) { push @output_rx, $1; next; }
+	if (/^>>>2\s*\/(.*)\/$/) { push @stderr_rx, $1; next; }
 	if (/^>>>=\s+(\d+)$/) { $var = \$ignored; $status = $1; next; }
 	if (/^>>>=\s+!(\d+)$/) { $var = \$ignored; $status_not = $1; next; }
 	$$var .= $_;
@@ -76,16 +77,20 @@ sub not_ok {
 if (defined($output) && $real_output ne $output) {
 	not_ok("wrong output:\n$real_output");
 }
-if (defined($output_rx) && $real_output !~ $output_rx) {
-	not_ok("output doesn't match /$output_rx/:\n$real_output\n");
+for my $rx (@output_rx) {
+	if ($real_output !~ $rx) {
+		not_ok("output doesn't match /$rx/:\n$real_output\n");
+	}
 }
 if (defined($stderr) && $real_stderr ne $stderr) {
 	not_ok("wrong stderr:\n$real_stderr");
 }
-if (defined($stderr_rx) && $real_stderr !~ $stderr_rx) {
-	not_ok("stderr doesn't match /$stderr_rx/:\n$real_stderr\n");
+for my $rx (@stderr_rx) {
+	if ($real_stderr !~ $rx) {
+		not_ok("stderr doesn't match /$rx/:\n$real_stderr\n");
+	}
 }
-if (!defined($stderr) && !defined($stderr_rx) && 
+if (!defined($stderr) && !@stderr_rx &&
     !defined($status) && !defined($status_not) &&
     $real_stderr) {
 	not_ok("output to stderr:\n$real_stderr\n");
@@ -97,7 +102,7 @@ if (defined($status_not) && $real_status == $status_not) {
 	not_ok("wrong status: $real_status (expected anything else)\n");
 }
 if (!defined($status) && !defined($status_not) &&
-    !defined($stderr) && !defined($stderr_rx) &&
+    !defined($stderr) && !@stderr_rx &&
     $real_status != 0) {
 	not_ok("wrong status: $real_status (command failed)\n");
 }
