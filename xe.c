@@ -696,17 +696,17 @@ main(int argc, char *argv[], char *envp[])
 
 				int matched = perc_match(pat, arg);
 
+				if (sflag && matched) {
+					pusharg("/bin/sh");
+					pusharg("-c");
+					pusharg(sflag);
+					pusharg("/bin/sh");
+				}
+
 				for (i = n + 1; i < cmdend; i++) {
 					if (argv[i][0] == '+' &&
 					    argv[i][1] == '\0')
 						break;
-
-					if (sflag) {
-						pusharg("/bin/sh");
-						pusharg("-c");
-						pusharg(sflag);
-						pusharg("/bin/sh");
-					}
 
 					if (matched &&
 					    !pusharg(perc_subst(pat, arg, argv[i])))
