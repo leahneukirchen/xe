@@ -681,9 +681,14 @@ main(int argc, char *argv[], char *envp[])
 			exit(1);
 		}
 
-		while ((arg = getarg())) {
+		while (1) {
 			buflen = 0;
 			argslen = 0;
+
+			while (runjobs >= maxjobs)
+				mywait();
+			if (!(arg = getarg()))
+				break;
 
 			int n;
 			for (n = optind, i = n + 1; n < cmdend; n = i + 1) {
@@ -721,6 +726,9 @@ main(int argc, char *argv[], char *envp[])
 	while (1) {
 		// check if there is an arg from a previous iteration
 		if (!keeparg) {
+			while (runjobs >= maxjobs)
+				mywait();
+
 			arg = getarg();
 			if (!arg)
 				break;
