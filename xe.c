@@ -674,6 +674,8 @@ main(int argc, char *argv[], char *envp[])
 		}
 	}
 
+	int keeparg = 0;
+
 	if (pflag) {
 		if (maxatonce != 1) {
 			fprintf(stderr,
@@ -719,68 +721,66 @@ main(int argc, char *argv[], char *envp[])
 				}
 			}
 		}
-		// done with args, so default execution will do nothing
-	}
+	} else {
+		while (1) {
+			// check if there is an arg from a previous iteration
+			if (!keeparg) {
+				while (runjobs >= maxjobs)
+					mywait();
 
-	int keeparg = 0;
-	while (1) {
-		// check if there is an arg from a previous iteration
-		if (!keeparg) {
-			while (runjobs >= maxjobs)
-				mywait();
-
-			arg = getarg();
-			if (!arg)
-				break;
-		}
-		keeparg = 0;
-
-		buflen = 0;
-		argslen = 0;
-
-		if (sflag) {
-			pusharg("/bin/sh");
-			pusharg("-c");
-			pusharg(sflag);
-			pusharg("/bin/sh");
-		} else if (optind >= cmdend) {
-			pusharg("printf");
-			pusharg("%s\\n");
-		}
-
-		for (i = optind; i < cmdend; i++) {
-			if (*replace && strcmp(argv[i], replace) == 0)
-				break;
-			if (!pusharg(argv[i]))
-				toolong();
-		}
-
-		if (!pusharg(arg))
-			toolong();
-		i++;
-
-		// reserve space for final arguments
-		for (argsresv = 0, j = i; j < cmdend; j++)
-			argsresv += 1 + strlen(argv[j]);
-
-		// fill with up to maxatonce arguments
-		for (j = 0; maxatonce < 1 || j < maxatonce-1; j++) {
-			arg = getarg();
-			if (!arg)
-				break;
-			if (!pusharg(arg)) {
-				// we are out of space,
-				// deal with this arg in the next iteration
-				keeparg = 1;
-				break;
+				arg = getarg();
+				if (!arg)
+					break;
 			}
-		}
+			keeparg = 0;
 
-		for (argsresv = 0, j = i; j < cmdend; j++)
-			if (!pusharg(argv[j]))
+			buflen = 0;
+			argslen = 0;
+
+			if (sflag) {
+				pusharg("/bin/sh");
+				pusharg("-c");
+				pusharg(sflag);
+				pusharg("/bin/sh");
+			} else if (optind >= cmdend) {
+				pusharg("printf");
+				pusharg("%s\\n");
+			}
+
+			for (i = optind; i < cmdend; i++) {
+				if (*replace && strcmp(argv[i], replace) == 0)
+					break;
+				if (!pusharg(argv[i]))
+					toolong();
+			}
+
+			if (!pusharg(arg))
 				toolong();
+			i++;
 
-		run();
+			// reserve space for final arguments
+			for (argsresv = 0, j = i; j < cmdend; j++)
+				argsresv += 1 + strlen(argv[j]);
+
+			// fill with up to maxatonce arguments
+			for (j = 0; maxatonce < 1 || j < maxatonce-1; j++) {
+				arg = getarg();
+				if (!arg)
+					break;
+				if (!pusharg(arg)) {
+					// we are out of space,
+					// deal with this arg in the next iter
+					keeparg = 1;
+					break;
+				}
+			}
+
+			for (argsresv = 0, j = i; j < cmdend; j++)
+				if (!pusharg(argv[j]))
+					toolong();
+
+			run();
+		}
 	}
 
 	while (mywait())
