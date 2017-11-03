@@ -87,11 +87,8 @@ mywait()
 	pid_t pid;
 
 	pid = wait(&status);
-	if (pid < 0) {
-		if (errno == ECHILD)
-			return 0;
-		// no other error possible?
-	}
+	if (pid < 0)
+		return !(errno == ECHILD);
 
 	int i;
 	for (i = 0; i < maxjobs; i++)
