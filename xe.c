@@ -215,6 +215,11 @@ run()
 
 	scanargs();
 
+	if (!args[0]) {
+		fprintf(stderr, "xe: no command\n");
+		exit(126);
+	}
+
 	if (nflag) {
 		trace();
 		runjobs--;
@@ -252,10 +257,6 @@ run()
 			close(pipefd[1]);
 		}
 
-		if (!args[0]) {
-			fprintf(stderr, "xe: no command\n");
-			exit(126);
-		}
 		if (qflag) {
 			int fd = open("/dev/null", O_RDONLY);
 			if (fd >= 0) {
@@ -264,7 +265,9 @@ run()
 				close(fd);
 			}
 		}
+
 		execvp(args[0], args);
+
 		int status = (errno == ENOENT ? 127 : 126);
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(status);
