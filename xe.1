@@ -1,4 +1,4 @@
-.Dd July 14, 2017
+.Dd November 3, 2017
 .Dt XE 1
 .Os
 .Sh NAME
@@ -7,10 +7,14 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl 0FLRnqv
-.Oo Fl p | Fl I Ar replace-arg Oc
+.Oo Fl I Ar replace-arg Oc
 .Op Fl N Ar maxargs
 .Op Fl j Ar maxjobs
 .Ar command\ ...
+.Nm
+.Op Ar flags\ ...
+.Fl p Ar pattern Ar command\ ...
+.Oo Cm \&+ Ar pattern Ar command\ ... Oc Ns ...
 .Nm
 .Op Ar flags\ ...
 .Fl f Ar argfile Ar command\ ...
@@ -45,9 +49,6 @@ are read from the standard input.
 The resulting command is constructed from the command line parameters,
 replacing
 .Ar replace-arg
-(unless
-.Fl p
-is used, see below)
 with the read argument, and is executed with
 .Xr execvp 3 .
 .Pp

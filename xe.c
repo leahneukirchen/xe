@@ -615,7 +615,8 @@ main(int argc, char *argv[], char *envp[])
 		case 'v': vflag++; break;
 		default:
 			fprintf(stderr,
-			    "Usage: %s [-0FLRnqv] [-p | -I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "Usage: %s [-0FLRnqv] [-I arg] [-N maxargs] [-j maxjobs] COMMAND...\n"
+			    "     | -p PATTERN COMMAND... [+ PATTERN COMMAND...]...\n"
 			    "     | -f ARGFILE COMMAND...\n"
 			    "     | -s SHELLSCRIPT\n"
 			    "     | -a COMMAND... -- ARGS...\n"

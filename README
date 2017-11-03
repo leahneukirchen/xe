@@ -4,7 +4,8 @@ NAME
      xe – execute a command for every argument
 
 SYNOPSIS
-     xe [-0FLRnqv] [-p | -I replace-arg] [-N maxargs] [-j maxjobs] command ...
+     xe [-0FLRnqv] [-I replace-arg] [-N maxargs] [-j maxjobs] command ...
+     xe [flags ...] -p pattern command ... [+ pattern command ...]...
      xe [flags ...] -f argfile command ...
      xe [flags ...] -s shellscript
      xe [flags ...] -a command ... -- args ...
@@ -21,9 +22,8 @@ DESCRIPTION
      command ...
              By default, arguments - separated by newlines - are read from the
              standard input.  The resulting command is constructed from the
-             command line parameters, replacing replace-arg (unless -p is
-             used, see below) with the read argument, and is executed with
-             execvp(3).
+             command line parameters, replacing replace-arg with the read
+             argument, and is executed with execvp(3).
 
              In this mode, no shell is involved and replace-arg must appear as
              a word on its own, i.e.  ‘foo {} bar’ will work, but ‘foo{} bar’
@@ -164,4 +164,4 @@ LICENSE
 
            http://creativecommons.org/publicdomain/zero/1.0/
 
-Void Linux                       July 14, 2017                      Void Linux
+Void Linux                     November 3, 2017                     Void Linux
