@@ -262,8 +262,9 @@ run()
 			}
 		}
 		execvp(args[0], args);
+		int status = (errno == ENOENT ? 127 : 126);
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
-		exit(errno == ENOENT ? 127 : 126);
+		exit(status);
 	}
 	if (pid < 0)
 		exit(126);
