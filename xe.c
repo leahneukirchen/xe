@@ -332,7 +332,7 @@ parse_jobs(char *s)
 	int n;
 
 #ifdef _SC_NPROCESSORS_ONLN
-	if (s[strlen(s) - 1] == 'x') {
+	if (*s && s[strlen(s) - 1] == 'x') {
 		n = (int)sysconf(_SC_NPROCESSORS_ONLN);
 		double d = 0.0;
 		errno = 0;
