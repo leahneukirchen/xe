@@ -346,7 +346,9 @@ parse_jobs(char *s)
 			n = 1;
 	} else
 #endif
-	{
+	if (strcmp(s, "j") == 0) {
+		n = -1;
+	} else {
 		errno = 0;
 		n = strtol(s, &e, 10);
 		if (errno != 0 || *e) {
