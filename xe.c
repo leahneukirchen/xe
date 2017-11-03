@@ -233,12 +233,15 @@ run()
 		snprintf(iter, sizeof iter, "%ld", iterations);
 		setenv("ITER", iter, 1);
 		// redirect stdin to /dev/null when we read arguments from it
+		// just close it if this fails
 		if (input == stdin) {
 			int fd = open("/dev/null", O_RDONLY);
 			if (fd >= 0) {
 				if (dup2(fd, 0) != 0)
-					exit(1);
+					close(0);
 				close(fd);
+			} else {
+				close(0);
 			}
 		}
 
