@@ -271,9 +271,10 @@ run()
 		int status = (errno == ENOENT ? 127 : 126);
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(status);
-	}
-	if (pid < 0)
+	} else if (pid < 0) {  // fork failed
+		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(126);
+	}
 
 	if (Lflag) {
 		long iter = iterations;
