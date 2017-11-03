@@ -331,9 +331,12 @@ parse_jobs(char *s)
 	char *e;
 	int n;
 
-#ifdef _SC_NPROCESSORS_ONLN
 	if (*s && s[strlen(s) - 1] == 'x') {
+#ifdef _SC_NPROCESSORS_ONLN
 		n = (int)sysconf(_SC_NPROCESSORS_ONLN);
+#else
+		n = 1;
+#endif
 		double d = 0.0;
 		errno = 0;
 		d = strtod(s, &e);
@@ -344,9 +347,7 @@ parse_jobs(char *s)
 		n = (int)(d * n);
 		if (n < 1)
 			n = 1;
-	} else
-#endif
-	if (strcmp(s, "j") == 0) {
+	} else if (strcmp(s, "j") == 0) {
 		n = -1;
 	} else {
 		errno = 0;
