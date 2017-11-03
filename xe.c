@@ -554,7 +554,7 @@ perc_subst(char *pat, char *base, char *arg)
 		    t+1);
 
 	if (l >= sizeof buf) {
-		fprintf(stderr, "xe: result of percent subsitution too long\n");
+		fprintf(stderr, "xe: result of percent substitution too long\n");
 		exit(1);
 	}
 
