@@ -1,0 +1,20 @@
+#compdef xe
+
+_arguments -s -S -A '-*' : \
+	'-f[read argument from file]:file:_files' \
+	'-s[use shell]:script: ' \
+	'-a[use arguments after --]' \
+	'-A[use arguments after separator]:separator: ' \
+        '-0[read arguments NUL-separated]' \
+	'-F[fatal: stop when a command fails]' \
+	'*-L[line-buffer output]' \
+	'-R[return 122 when no arguments are specified]' \
+	'-n[dry run (do not run commands)]' \
+	'-q[quiet mode]' \
+	'*-v[verbose mode]' \
+	'-I[argument replacement string]:string: ' \
+	'-j[maximum number of parallel command executions]:number: ' \
+	'(-p)-N[maximum number of arguments per command]:number: ' \
+	'(-N)-p[enable percent rules]:percent pattern: ' \
+	'(-):command name: _command_names -e' \
+	'*::arguments:_normal'
