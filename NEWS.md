@@ -1,5 +1,13 @@
 ## HEAD
 
+## 0.11 (2017-11-05)
+
+* Add zsh completion.
+* Fix `-F` to exit as soon as possible when a command failed.
+* Fix when using `-s` and `-p` together.
+* Better error handling for some rare situations.
+* Made test suite more robust.
+
 ## 0.10 (2017-10-30)
 
 * New flag `-p` to enable "percent rules" ala make(1), see the man
