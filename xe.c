@@ -157,6 +157,10 @@ trace()
 	size_t i;
 
 	for (i = 0; i < argslen; i++) {
+		// don't print $0 in shell mode as it doesnt represend the executed
+		// command: ['sh', '-c', 'optarg', $0, ...]
+		if (sflag && i == 3)
+			continue;
 		if (i > 0)
 			fprintf(traceout, " ");
 		shquote(args[i]);
