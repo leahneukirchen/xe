@@ -130,7 +130,7 @@ my_child:
 }
 
 static void
-shquote(const char *s)
+sh_quote(const char *s)
 {
 	if (*s &&
 	    !strpbrk(s, "\001\002\003\004\005\006\007\010"
@@ -159,7 +159,7 @@ trace()
 	for (i = 0; i < argslen; i++) {
 		if (i > 0)
 			fprintf(traceout, " ");
-		shquote(args[i]);
+		sh_quote(args[i]);
 	}
 	fprintf(traceout, "\n");
 	fflush(traceout);
