@@ -15,10 +15,10 @@ dd if=/dev/zero bs=1 count=17711 2>/dev/null |
 EOF
 
 tap3 'argslen check' <<'EOF'
-perl -e 'print "x"x8000, "\n" for 1..42' |
+perl -e 'print "x"x12000, "\n" for 1..23' |
 	xe -N0 -s 'echo $#'
 >>>
-16
-16
 10
+10
+3
 EOF
