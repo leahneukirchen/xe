@@ -299,7 +299,7 @@ run()
 				if (vflag > 1 || Lflag > 1)
 					printf("%04ld= ", iter);
 				fwrite(line, 1, rd, stdout);
-			};
+			}
 		}
 		if (lpid < 0)
 			exit(126);
