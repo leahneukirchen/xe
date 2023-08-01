@@ -1,7 +1,7 @@
 #!/bin/sh
 export "PATH=.:$PATH"
 
-printf '1..13\n'
+printf '1..16\n'
 printf '# error handling\n'
 
 tap3 'exit code on success' <<'EOF'
@@ -16,6 +16,27 @@ EOF
 
 tap3 'exit code on when command fails with 1-125' <<'EOF'
 xe -s 'exit 42'
+<<<
+a
+>>>= 123
+EOF
+
+tap3 'exit code on when command fails with 126' <<'EOF'
+xe -s 'exit 126'
+<<<
+a
+>>>= 123
+EOF
+
+tap3 'exit code on when command fails with 127' <<'EOF'
+xe -s 'exit 127'
+<<<
+a
+>>>= 123
+EOF
+
+tap3 'exit code on when command fails with 250' <<'EOF'
+xe -s 'exit 250'
 <<<
 a
 >>>= 123

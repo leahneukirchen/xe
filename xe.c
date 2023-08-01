@@ -99,17 +99,15 @@ mywait()
 
 my_child:
 	if (WIFEXITED(status)) {
-		if (WEXITSTATUS(status) >= 1 && WEXITSTATUS(status) <= 125) {
+		if (WEXITSTATUS(status) == 255) {
+			fprintf(stderr, "xe: job %ld [pid %ld] exited with status 255\n", children[i].iter, (long)pid);
+			exit(124);
+		} else if (WEXITSTATUS(status) > 0) {
 			if (Fflag) {
 				fprintf(stderr, "xe: job %ld [pid %ld] exited with status %d\n", children[i].iter, (long)pid, WEXITSTATUS(status));
 				exit(123);
 			}
 			failed = 1;
-		} else if (WEXITSTATUS(status) == 255) {
-			fprintf(stderr, "xe: job %ld [pid %ld] exited with status 255\n", children[i].iter, (long)pid);
-			exit(124);
-		} else if (WEXITSTATUS(status) > 125) {
-			exit(WEXITSTATUS(status));
 		}
 	} else if (WIFSIGNALED(status)) {
 		fprintf(stderr, "xe: job %ld [pid %ld] terminated by signal %d\n",
@@ -232,8 +230,17 @@ run()
 			exit(126);
 	}
 
+	unsigned char status;
+	int alivepipefd[2];
+	if (pipe(alivepipefd) < 0)
+		exit(126);
+	fcntl(alivepipefd[0], F_SETFD, FD_CLOEXEC);
+	fcntl(alivepipefd[1], F_SETFD, FD_CLOEXEC);
+
 	pid = fork();
 	if (pid == 0) {  // in child
+		close(alivepipefd[0]);
+
 		char iter[32];
 		snprintf(iter, sizeof iter, "%ld", iterations);
 		setenv("ITER", iter, 1);
@@ -268,13 +275,25 @@ run()
 
 		execvp(args[0], args);
 
-		int status = (errno == ENOENT ? 127 : 126);
+		status = (errno == ENOENT ? 127 : 126);
+		if (write(alivepipefd[1], &status, 1) != 1) {
+			/* ignored */
+		}
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
-		exit(status);
+		_exit(status);
 	} else if (pid < 0) {  // fork failed
 		fprintf(stderr, "xe: %s: %s\n", args[0], strerror(errno));
 		exit(126);
 	}
+
+	close(alivepipefd[1]);
+	if (read(alivepipefd[0], &status, 1) == 1) {
+		if (status == 126)
+			exit(126);
+		if (status == 127)
+			exit(127);
+	}
+	close(alivepipefd[0]);
 
 	if (Lflag) {
 		long iter = iterations;
