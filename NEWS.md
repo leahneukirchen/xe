@@ -1,5 +1,11 @@
 ## HEAD
 
+## 1.0 (2023-08-05)
+
+* Slightly incompatible change: properly forward errors on exec,
+  return 123 on any exit status 1-254 (like GNU xargs).
+* Small bugfixes.
+
 ## 0.11 (2017-11-05)
 
 * Add zsh completion.
@@ -32,5 +38,5 @@
 ## 0.7 (2017-04-13)
 
 * Error when the `-A` separator does not appear
-* Bug: fix quoting of empty strings
+* Bugfix: fix quoting of empty strings
 * Documentation fixes
