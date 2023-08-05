@@ -54,8 +54,8 @@ DESCRIPTION
 
      The options are as follows:
 
-     -0      Input filenames are separated by NUL bytes (instead of newlines,
-             which is the default)
+     -0      Input arguments are separated by NUL bytes (instead of newlines,
+             which is the default).
 
      -F      Fatal: stop and exit when a command execution fails.
 
@@ -128,7 +128,7 @@ ENVIRONMENT
 EXIT STATUS
      xe follows the convention of GNU and OpenBSD xargs:
      0       on success
-     123     if any invocation of the command exited with status 1 to 125.
+     123     if any invocation of the command exited with status 1 to 254.
      124     if the command exited with status 255
      125     if the command was killed by a signal
      126     if the command cannot be run
@@ -162,6 +162,6 @@ LICENSE
      To the extent possible under law, the creator of this work has waived all
      copyright and related or neighboring rights to this work.
 
-           http://creativecommons.org/publicdomain/zero/1.0/
+     http://creativecommons.org/publicdomain/zero/1.0/
 
-Void Linux                     November 3, 2017                     Void Linux
+Void Linux                      August 1, 2023                      Void Linux
