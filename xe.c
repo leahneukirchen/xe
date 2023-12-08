@@ -190,7 +190,7 @@ pusharg(const char *a)
 		while (buflen + l > bufcap)
 			bufcap *= 2;
 		buf = realloc(buf, bufcap);
-		if (!args)
+		if (!buf)
 			exit(1);
 	}
 
